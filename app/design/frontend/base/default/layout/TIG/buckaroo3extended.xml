@@ -42,6 +42,10 @@
                 <type>skin_js</type>
                 <name>js/TIG/Buckaroo3Extended/afterpayObserver.js</name>
             </action>
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>js/TIG/Buckaroo3Extended/buckarooSdk.js</name>
+            </action>
 		</reference>
 		<reference name="before_body_end">
 			<block type="core/template" name="buckaroo_save_sata_js" template="buckaroo3extended/saveData.phtml"/>
