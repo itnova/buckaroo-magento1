@@ -1,0 +1,48 @@
+<script>
+    /**
+     * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
+     *
+     * This triggers the Apple Pay pop-up to be shown after the Place Order-button is
+     * clicked, so the payment can be processed before any other actions are
+     * triggered.
+     */
+    Review.prototype.save = Review.prototype.save.wrap(function(save) {
+        /**
+         * If Apple Pay is not the selected Payment Method, fallback to normal execution.
+         */
+        if (payment.currentMethod !== 'buckaroo3extended_applepay') {
+            save();
+
+            return;
+        }
+
+        var quote = new Ajax.Request(
+            '/buckaroo3extended/checkout/applepay',
+            {
+                method: 'post',
+                onSuccess: function(result) {
+                    var result = getResults(result.responseJSON);
+                    var options = new BuckarooSdk.ApplePay.ApplePayOptions(result);
+                    var payment = new BuckarooSdk.ApplePay.ApplePayPayment("#apple-pay-wrapper", options);
+                    payment.showPayButton("black");
+                },
+                onFailure: checkout.ajaxFailure.bind(checkout)
+            }
+        );
+
+        function getResults(result)
+        {
+          //
+        }
+
+        // Open Popup
+
+        // Wait for received payment
+
+        // Send to Buckaroo
+
+        // Wait for confirmation
+
+        // Continue with Magento's saveOrder()-flow.
+    });
+</script>

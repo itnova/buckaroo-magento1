@@ -48,13 +48,13 @@
             <block type="core/text" name="buckaroo">
                 <action method="setText">
                     <text>
-                        <![CDATA[<script type="text/javascript" src ="/skin/frontend/base/default/js/TIG/Buckaroo3Extended/apple.js"></script>]]>
-                    </text>
-                </action>
-                <action method="setText">
-                    <text>
                         <![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>
                     </text>
+                </action>
+            </block>
+            <block type="core/template" name="applepay_before_save">
+                <action method="setTemplate" ifconfig="buckaroo/buckaroo3extended_applepay/active">
+                    <template>buckaroo3extended/applepay/beforeSave.phtml</template>
                 </action>
             </block>
 		</reference>

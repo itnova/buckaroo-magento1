@@ -47,6 +47,15 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $request->sendRequest();
     }
 
+    public function applepayAction()
+    {
+        $quote = Mage::getModel('checkout/cart')->getQuote();
+        $shippingData = $quote->getShippingAddress()->getData();
+
+        $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json',true);
+        $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
+    }
+
     public function saveDataAction()
     {
         $data = $this->getRequest()->getPost();
