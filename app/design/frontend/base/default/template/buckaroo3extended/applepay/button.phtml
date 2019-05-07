@@ -1,0 +1,126 @@
+<form class="col">
+    <fieldset class="form-group">
+            <input type="hidden" aria-describedby="amount-addon" autocomplete="off" autofocus="" class="form-control input-block-level" id="amount" min="0.01" pattern="\d*(.\d\d)?" placeholder="Amount" step="0.01" value="0.01">
+    </fieldset>
+    <div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
+    <div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
+    <div id="apple-pay-wrapper" lang="en" class="apple-pay apple-pay-button apple-pay-button-black"></div>
+</form>
+
+<script>
+    var Buckaroo;
+    (function (Buckaroo) {
+        var DemoApp;
+        (function (DemoApp) {
+            var ApplePay = (function () {
+                function ApplePay() {
+                    this.updatePanel = function (panel, contact) {
+                        if (contact.emailAddress) {
+                            panel.find(".contact-email")
+                                .text(contact.emailAddress)
+                                .attr("href", "mailto:" + contact.emailAddress)
+                                .append("<br/>")
+                                .removeClass("d-none");
+                        }
+                        if (contact.phoneNumber) {
+                            panel.find(".contact-telephone")
+                                .text(contact.phoneNumber)
+                                .attr("href", "tel:" + contact.phoneNumber)
+                                .append("<br/>")
+                                .removeClass("d-none");
+                        }
+                        if (contact.givenName) {
+                            panel.find(".contact-name")
+                                .text(contact.givenName + " " + contact.familyName)
+                                .append("<br/>")
+                                .removeClass("d-none");
+                        }
+                        if (contact.addressLines) {
+                            panel.find(".contact-address-lines").text(contact.addressLines.join(", "));
+                            panel.find(".contact-sub-locality").text(contact.subLocality);
+                            panel.find(".contact-locality").text(contact.locality);
+                            panel.find(".contact-sub-administrative-area").text(contact.subAdministrativeArea);
+                            panel.find(".contact-administrative-area").text(contact.administrativeArea);
+                            panel.find(".contact-postal-code").text(contact.postalCode);
+                            panel.find(".contact-country").text(contact.country);
+                            panel.find(".contact-address").removeClass("d-none");
+                        }
+                    };
+                    this.merchantIdentifier = "E5CF7C41EAD6406FACA23FAB9A7A8625";
+                    this.storeName = "<?php echo $this->getStoreName() ?>";
+                    this.applePayVersion = 3;
+                    this.countryCode = "<?php echo $this->getCountryCode() ?>";
+                    this.currencyCode = "<?php echo $this->getCurrency() ?>";
+                }
+                ApplePay.prototype.initialize = function () {
+                    var totalForDelivery = {
+                        label: this.storeName,
+                        amount: "0.02",
+                        type: "final"
+                    };
+                    var subtotal = "<?php echo $this->getProductPrice() ?>";
+                    var lineItemsForDelivery = [
+                        { label: "Subtotal", amount: subtotal, type: "final" },
+                        { label: "Delivery", amount: "0.01", type: "final" }
+                    ];
+                    var shippingMethods = [
+                        { label: "Delivery", amount: "0.01", identifier: "delivery", detail: "Delivery to you" },
+                        { label: "Collection", amount: "0.00", identifier: "collection", detail: "Collect from the store" }
+                    ];
+                    var options = new BuckarooSdk.ApplePay.ApplePayOptions(this.storeName, this.countryCode, this.currencyCode, this.getPageLanguage(), this.merchantIdentifier, lineItemsForDelivery, totalForDelivery, "shipping", shippingMethods, this.captureFunds, this.shippingMethodSelected);
+                    BuckarooSdk.ApplePay.checkApplePaySupport(this.merchantIdentifier).then(function (applePaySupported) {
+                        if (applePaySupported) {
+                            var payment = new BuckarooSdk.ApplePay.ApplePayPayment("#apple-pay-wrapper", options);
+                            payment.showPayButton("black");
+                        }
+                        else {
+                            alert("ApplePay not available!");
+                        }
+                    });
+                };
+                ApplePay.prototype.shippingMethodSelected = function (method) {
+                    return Promise.resolve(null);
+                };
+                ApplePay.prototype.captureFunds = function (payment) {
+                    var authorizationResult = {
+                        status: ApplePaySession.STATUS_SUCCESS,
+                        errors: []
+                    };
+                    $("#debug-wrapper").removeClass("d-none");
+                    $("#debug").html(JSON.stringify(payment));
+                    if (authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
+                    }
+                    else {
+                        var errors = authorizationResult.errors.map(function (error) {
+                            return error.message;
+                        });
+                        this.showError("Your payment could not be processed. " + errors.join(" "));
+                        authorizationResult.errors.forEach(function (error) {
+                            console.error(error.message + " (" + error.contactField + ": " + error.code + ").");
+                        });
+                    }
+                    return Promise.resolve(authorizationResult);
+                };
+                ApplePay.prototype.getPageLanguage = function () {
+                    return "en";
+                };
+                ApplePay.prototype.showError = function (text) {
+                    var error = $(".apple-pay-error");
+                    error.text(text);
+                    error.removeClass("d-none");
+                };
+                ApplePay.prototype.showSuccess = function () {
+                    $(".apple-pay-intro").hide();
+                    var success = $(".apple-pay-success");
+                    success.removeClass("d-none");
+                };
+                return ApplePay;
+            }());
+            DemoApp.ApplePay = ApplePay;
+        })(DemoApp = Buckaroo.DemoApp || (Buckaroo.DemoApp = {}));
+    })(Buckaroo || (Buckaroo = {}));
+    (function () {
+        var handler = new Buckaroo.DemoApp.ApplePay();
+        handler.initialize();
+    })();
+</script>
