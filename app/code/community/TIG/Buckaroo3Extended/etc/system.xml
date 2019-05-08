@@ -180,13 +180,23 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </key>
+                        <guid translate="label comment tooltip">
+                            <label>Guid</label>
+                            <comment>Enter your Buckaroo guid key.</comment>
+                            <tooltip>The guid key can be retrieved in Payment Plaza under the profile tab. For support contact Buckaroo.</tooltip>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </guid>
                         <certificate_selection translate="label comment tooltip">
                             <label>Certificate file</label>
                             <comment>Upload certificates at the certificate management tab.</comment>
                             <tooltip>The certificate can be retrieved in Payment Plaza under the profile tab. For support contact Buckaroo.</tooltip>
                             <frontend_type>select</frontend_type>
                             <source_model>buckaroo3extended/sources_certificates</source_model>
-                            <sort_order>50</sort_order>
+                            <sort_order>60</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -196,7 +206,7 @@
                             <comment>The thumbprint and certificate should form a pair.</comment>
                             <tooltip>The certificate thumbprint can be retrieved in Payment Plaza under the profile tab. For support contact Buckaroo.</tooltip>
                             <frontend_type>text</frontend_type>
-                            <sort_order>60</sort_order>
+                            <sort_order>70</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
@@ -205,7 +215,7 @@
                             <label>Transaction label</label>
                             <comment>The transaction description in Payment Plaza.</comment>
                             <frontend_type>text</frontend_type>
-                            <sort_order>70</sort_order>
+                            <sort_order>80</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>

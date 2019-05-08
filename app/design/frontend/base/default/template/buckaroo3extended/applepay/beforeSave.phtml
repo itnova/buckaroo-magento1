@@ -3,11 +3,6 @@
  * Empty div's to be used for the ApplePay pop-up.
  */
 ?>
-<fieldset class="form-group">
-    <input type="hidden" aria-describedby="amount-addon" autocomplete="off" autofocus=""
-           class="form-control input-block-level" id="amount"
-           pattern="\d*(.\d\d)?" placeholder="Amount" value="1.00">
-</fieldset>
 <div id="set-up-apple-pay-button"
      class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
 <div id="apple-pay-button” class=“apple-pay input-block-level d-none"></div>
@@ -20,14 +15,6 @@
 
             return
         }
-
-        // applePayButton = '<div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>';
-        // applePayWrapper = '<div id="apple-pay-wrapper" lang="en" class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>';
-        //
-        // debugger;
-        //
-        // jQuery('#checkout-review-submit .btn-checkout').replaceWith(applePayButton + applePayWrapper);
-
         save()
     })
 
@@ -120,11 +107,11 @@
 
                 ApplePay.prototype.processResponse = function(response) {
                     return {
-                        storeName: 'Test Store',
+                        storeName: response.storeName,
                         countryCode: response.country_id,
-                        currencyCode: 'EUR',
+                        currencyCode: response.currencyCode,
                         cultureCode: 'en',
-                        merchantIdentifier: 'E5CF7C41EAD6406FACA23FAB9A7A8625',
+                        merchantIdentifier: response.guid,
                         lineItems: this.processLineItems(response),
                         totalLineItems: this.processTotalLineItems(response),
                         shippingType: 'shipping',

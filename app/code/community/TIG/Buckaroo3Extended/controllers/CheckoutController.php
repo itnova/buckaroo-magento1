@@ -52,6 +52,14 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $quote = Mage::getModel('checkout/cart')->getQuote();
         $shippingData = $quote->getShippingAddress()->getData();
 
+        $storeName = Mage::app()->getStore()->getFrontendName();
+        $currencyCode = Mage::app()->getStore()->getCurrentCurrencyCode();
+        $guid = Mage::getStoreConfig('buckaroo/buckaroo3extended/guid', Mage::app()->getStore()->getId());
+
+        $shippingData['storeName'] = $storeName;
+        $shippingData['currencyCode'] = $currencyCode;
+        $shippingData['guid'] = $guid;
+
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json',true);
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
     }
