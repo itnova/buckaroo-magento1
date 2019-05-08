@@ -3,10 +3,34 @@
  * Empty div's to be used for the ApplePay pop-up.
  */
 ?>
-<div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
-<div id="apple-pay-wrapper" style="display: none;" lang="en" class="apple-pay apple-pay-button apple-pay-button-black d-none hidden"></div>
-
+<fieldset class="form-group">
+    <input type="hidden" aria-describedby="amount-addon" autocomplete="off" autofocus=""
+           class="form-control input-block-level" id="amount"
+           pattern="\d*(.\d\d)?" placeholder="Amount" value="1.00">
+</fieldset>
+<div id="set-up-apple-pay-button"
+     class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
+<div id="apple-pay-button” class=“apple-pay input-block-level d-none"></div>
+<div id="apple-pay-wrapper" lang="en"
+     class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
 <script>
+    Payment.prototype.save = Payment.prototype.save.wrap(function(save) {
+        if(payment.currentMethod !== 'buckaroo3extended_applepay') {
+            save()
+
+            return
+        }
+
+        // applePayButton = '<div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>';
+        // applePayWrapper = '<div id="apple-pay-wrapper" lang="en" class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>';
+        //
+        // debugger;
+        //
+        // jQuery('#checkout-review-submit .btn-checkout').replaceWith(applePayButton + applePayWrapper);
+
+        save()
+    })
+
     /**
      * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
      *
@@ -24,80 +48,144 @@
             return
         }
 
-        var quote = new Ajax.Request(
-            '/buckaroo3extended/checkout/applepay',
-            {
-                method: 'post',
-                onSuccess: function(response) {
-                    var results = processResponse(response.responseJSON)
-                    var options = new BuckarooSdk.ApplePay.ApplePayOptions(
-                        results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
-                        results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
-                        results.shippingMethods, BuckarooSdk.ApplePay.captureFunds
-                    )
-                    var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
-                },
-                onFailure: checkout.ajaxFailure.bind(checkout)
-            }
-        )
+        (function() {
+            var handler = new Buckaroo.Magento.ApplePay()
+            handler.initialize()
+        })()
     })
 
-    BuckarooSdk.ApplePay.captureFunds = function(payment) {
-        debugger
-        var authorizationResult = {
-            status: ApplePaySession.STATUS_SUCCESS,
-            errors: []
-        }
-        $('#debug-wrapper').removeClass('d-none')
-        $('#debug').html(JSON.stringify(payment))
-        if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
-        } else {
-            var errors = authorizationResult.errors.map(function(error) {
-                return error.message
-            })
-            this.showError('Your payment could not be processed. ' + errors.join(' '))
-            authorizationResult.errors.forEach(function(error) {
-                console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
-            })
-        }
-        return Promise.resolve(authorizationResult)
-    }
+    var Buckaroo;
+    (function(Buckaroo) {
+        var Magento;
+        (function(Magento) {
+            var ApplePay = (function() {
+                function ApplePay() {
+                    this.updatePanel = function(panel, contact) {
+                        if(contact.emailAddress) {
+                            panel.find('.contact-email')
+                                .text(contact.emailAddress)
+                                .attr('href', 'mailto:' + contact.emailAddress)
+                                .append('<br/>')
+                                .removeClass('d-none')
+                        }
+                        if(contact.phoneNumber) {
+                            panel.find('.contact-telephone')
+                                .text(contact.phoneNumber)
+                                .attr('href', 'tel:' + contact.phoneNumber)
+                                .append('<br/>')
+                                .removeClass('d-none')
+                        }
+                        if(contact.givenName) {
+                            panel.find('.contact-name')
+                                .text(contact.givenName + ' ' + contact.familyName)
+                                .append('<br/>')
+                                .removeClass('d-none')
+                        }
+                        if(contact.addressLines) {
+                            panel.find('.contact-address-lines').text(contact.addressLines.join(', '))
+                            panel.find('.contact-sub-locality').text(contact.subLocality)
+                            panel.find('.contact-locality').text(contact.locality)
+                            panel.find('.contact-sub-administrative-area').text(contact.subAdministrativeArea)
+                            panel.find('.contact-administrative-area').text(contact.administrativeArea)
+                            panel.find('.contact-postal-code').text(contact.postalCode)
+                            panel.find('.contact-country').text(contact.country)
+                            panel.find('.contact-address').removeClass('d-none')
+                        }
+                    }
+                }
 
-    function processResponse(response) {
-        return {
-            storeName: 'Test Store',
-            countryCode: response.country_id,
-            currencyCode: 'EUR',
-            cultureCode: 'en',
-            merchantIdentifier: 'E5CF7C41EAD6406FACA23FAB9A7A8625',
-            lineItems: processLineItems(response),
-            totalLineItems: processTotalLineItems(response),
-            shippingType: 'shipping',
-            shippingMethods: createShippingMethodInformation(response)
-        }
-    }
+                ApplePay.prototype.initialize = function() {
+                    var self = this;
+                    var quote = new Ajax.Request(
+                        '/buckaroo3extended/checkout/applepay',
+                        {
+                            method: 'post',
+                            onSuccess: function(response) {
+                                var results = self.processResponse(response.responseJSON)
+                                var options = new BuckarooSdk.ApplePay.ApplePayOptions(
+                                    results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
+                                    results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
+                                    results.shippingMethods, self.captureFunds
+                                )
+                                if (typeof ApplePaySession !== 'undefined') {
+                                    var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
+                                    payment.showPayButton("black");
+                                }
+                                jQuery('#apple-pay-wrapper').trigger('click');
+                            },
+                            onFailure: checkout.ajaxFailure.bind(checkout)
+                        }
+                    )
+                }
 
-    function processLineItems(response) {
-        return [
-            {label: 'Subtotal', amount: response.subtotal, type: 'final'},
-            {label: 'Delivery', amount: response.shipping_incl_tax, type: 'final'}
-        ]
-    }
+                ApplePay.prototype.processResponse = function(response) {
+                    return {
+                        storeName: 'Test Store',
+                        countryCode: response.country_id,
+                        currencyCode: 'EUR',
+                        cultureCode: 'en',
+                        merchantIdentifier: 'E5CF7C41EAD6406FACA23FAB9A7A8625',
+                        lineItems: this.processLineItems(response),
+                        totalLineItems: this.processTotalLineItems(response),
+                        shippingType: 'shipping',
+                        shippingMethods: this.createShippingMethodInformation(response)
+                    }
+                }
 
-    function processTotalLineItems(response) {
-        return [
-            {label: 'Test Store', amount: response.shipping_incl_tax, type: 'final'}
-        ]
-    }
+                ApplePay.prototype.processLineItems = function(response) {
+                    var subTotal = parseFloat(response.subtotal).toFixed(2);
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
 
-    function createShippingMethodInformation(response) {
-        return [
-            {
-                label: response.shipping_description,
-                amount: response.shipping_incl_tax,
-                identifier: response.shipping_method,
-                detail: null
-            }
-        ]
-    }
+                    return [
+                        {label: 'Subtotal', amount: subTotal, type: 'final'},
+                        {label: 'Delivery', amount: shippingInclTax, type: 'final'}
+                    ]
+                }
+
+                ApplePay.prototype.processTotalLineItems = function(response) {
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
+
+                    return {
+                        label: 'Test Store', amount: shippingInclTax, type: 'final'
+                    }
+                }
+
+                ApplePay.prototype.createShippingMethodInformation = function(response) {
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
+
+                    return [
+                        {
+                            label: response.shipping_description,
+                            amount: shippingInclTax,
+                            identifier: response.shipping_method,
+                            detail: null
+                        }
+                    ]
+                }
+
+                ApplePay.prototype.captureFunds = function(payment) {
+                    var authorizationResult = {
+                        status: ApplePaySession.STATUS_SUCCESS,
+                        errors: []
+                    }
+                    $('#debug-wrapper').removeClass('d-none')
+                    $('#debug').html(JSON.stringify(payment))
+                    if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
+                    } else {
+                        var errors = authorizationResult.errors.map(function(error) {
+                            return error.message
+                        })
+                        this.showError('Your payment could not be processed. ' + errors.join(' '))
+                        authorizationResult.errors.forEach(function(error) {
+                            console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
+                        })
+                    }
+                    return Promise.resolve(authorizationResult)
+                }
+
+                return ApplePay
+            }())
+            Magento.ApplePay = ApplePay
+        })(Magento = Buckaroo.Magento || (Buckaroo.Magento = {}))
+    })(Buckaroo || (Buckaroo = {}))
 </script>
