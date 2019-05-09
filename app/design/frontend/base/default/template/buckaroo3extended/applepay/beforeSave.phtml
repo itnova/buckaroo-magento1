@@ -30,17 +30,28 @@
             return
         }
 
+        /**
+         * This function is triggered to handle the entire Apple Pay process.
+         */
         (function() {
             var paymentFormId = '#' + payment.form
             jQuery('<input>').attr({
                 type: 'hidden',
-                id: 'applepay-response',
-                name: 'applepay-response',
+                id: 'apple-pay-response',
+                name: 'apple-pay-response',
                 value: null
-            }).appendTo(paymentFormId);
-            var handler = new Buckaroo.Magento.ApplePay(paymentFormId)
+            }).appendTo(paymentFormId)
+            var handler = new Buckaroo.Magento.ApplePay()
             handler.initialize()
         })()
+
+        /**
+         * When Apple Pay triggers a successful payment event, continue with normal
+         * execution.
+         */
+        jQuery(document).on('apple_pay_session_status_success', function() {
+            save()
+        })
     })
 
     var Buckaroo;
@@ -69,22 +80,22 @@
                         {
                             method: 'post',
                             onSuccess: function(response) {
-                                debugger;
+                                debugger
                                 var results = self.processResponse(response.responseJSON)
                                 var options = new BuckarooSdk.ApplePay.ApplePayOptions(
                                     results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
                                     results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
                                     results.shippingMethods, self.captureFunds
                                 )
-                                BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function (applePaySupported) {
-                                    if (applePaySupported) {
-                                        var payment = new BuckarooSdk.ApplePay.ApplePayPayment("#apple-pay-wrapper", options);
-                                        payment.showPayButton("black");
+                                BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
+                                    if(applePaySupported) {
+                                        var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
+                                        payment.showPayButton('black')
                                         jQuery('#buckaroo-apple-pay-popup').fadeIn('fast')
                                     } else {
-                                        alert("ApplePay not available!");
+                                        alert('ApplePay not available!')
                                     }
-                                });
+                                })
                             },
                             onFailure: checkout.ajaxFailure.bind(checkout)
                         }
@@ -173,11 +184,8 @@
                         errors: []
                     }
                     if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
-                        jQuery(formId).value(JSON.stringify(payment.token))
-                        saveUrl = '<?php echo $this->getUrl('checkout/onepage/saveOrder', array('form_key' => Mage::getSingleton('core/session')->getFormKey())) ?>';
-                        successUrl = '<?php echo $this->getUrl('checkout/onepage/success') ?>';
-                        review = new Review(saveUrl, successUrl, jQuery('checkout-agreements'));
-                        review.save();
+                        jQuery('#apple-pay-response').val(JSON.stringify(payment.token))
+                        jQuery(document).trigger('apple_pay_session_status_success')
                     } else {
                         var errors = authorizationResult.errors.map(function(error) {
                             return error.message
