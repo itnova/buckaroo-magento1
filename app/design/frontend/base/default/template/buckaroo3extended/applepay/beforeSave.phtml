@@ -37,19 +37,17 @@
                 id: 'applepay-response',
                 name: 'applepay-response',
                 value: null
-            }).appendTo('#' + payment.form);
+            }).appendTo(paymentFormId);
             var handler = new Buckaroo.Magento.ApplePay(paymentFormId)
             handler.initialize()
         })()
-
-        save();
     })
 
     var Buckaroo;
     (function(Buckaroo) {
         var Magento;
         (function(Magento) {
-            var ApplePay = (function(formId) {
+            var ApplePay = (function() {
                 /**
                  * This is triggered first and can be used to update the Apple Pay pop-up with information from within
                  * the wallet, or from within Magento, before it is displayed.
@@ -176,6 +174,10 @@
                     }
                     if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
                         jQuery(formId).value(JSON.stringify(payment.token))
+                        saveUrl = '<?php echo $this->getUrl('checkout/onepage/saveOrder', array('form_key' => Mage::getSingleton('core/session')->getFormKey())) ?>';
+                        successUrl = '<?php echo $this->getUrl('checkout/onepage/success') ?>';
+                        review = new Review(saveUrl, successUrl, jQuery('checkout-agreements'));
+                        review.save();
                     } else {
                         var errors = authorizationResult.errors.map(function(error) {
                             return error.message
