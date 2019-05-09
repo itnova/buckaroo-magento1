@@ -5,19 +5,10 @@
 ?>
 <div id="set-up-apple-pay-button"
      class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
-<div id="apple-pay-button” class=“apple-pay input-block-level d-none"></div>
+<div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
 <div id="apple-pay-wrapper" lang="en"
      class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
 <script>
-    Payment.prototype.save = Payment.prototype.save.wrap(function(save) {
-        if(payment.currentMethod !== 'buckaroo3extended_applepay') {
-            save()
-
-            return
-        }
-        save()
-    })
-
     /**
      * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
      *
@@ -46,44 +37,23 @@
         var Magento;
         (function(Magento) {
             var ApplePay = (function() {
+                /**
+                 * This is triggered first and can be used to update the Apple Pay pop-up with information from within
+                 * the wallet, or from within Magento, before it is displayed.
+                 */
                 function ApplePay() {
                     this.updatePanel = function(panel, contact) {
-                        if(contact.emailAddress) {
-                            panel.find('.contact-email')
-                                .text(contact.emailAddress)
-                                .attr('href', 'mailto:' + contact.emailAddress)
-                                .append('<br/>')
-                                .removeClass('d-none')
-                        }
-                        if(contact.phoneNumber) {
-                            panel.find('.contact-telephone')
-                                .text(contact.phoneNumber)
-                                .attr('href', 'tel:' + contact.phoneNumber)
-                                .append('<br/>')
-                                .removeClass('d-none')
-                        }
-                        if(contact.givenName) {
-                            panel.find('.contact-name')
-                                .text(contact.givenName + ' ' + contact.familyName)
-                                .append('<br/>')
-                                .removeClass('d-none')
-                        }
-                        if(contact.addressLines) {
-                            panel.find('.contact-address-lines').text(contact.addressLines.join(', '))
-                            panel.find('.contact-sub-locality').text(contact.subLocality)
-                            panel.find('.contact-locality').text(contact.locality)
-                            panel.find('.contact-sub-administrative-area').text(contact.subAdministrativeArea)
-                            panel.find('.contact-administrative-area').text(contact.administrativeArea)
-                            panel.find('.contact-postal-code').text(contact.postalCode)
-                            panel.find('.contact-country').text(contact.country)
-                            panel.find('.contact-address').removeClass('d-none')
-                        }
+                        // Do something.
                     }
                 }
 
+                /**
+                 * Used to retrieve all data from the Quote and create ApplePay Payment Session.
+                 */
                 ApplePay.prototype.initialize = function() {
                     var self = this;
-                    var quote = new Ajax.Request(
+
+                    new Ajax.Request(
                         '/buckaroo3extended/checkout/applepay',
                         {
                             method: 'post',
@@ -98,19 +68,24 @@
                                     var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
                                     payment.showPayButton("black");
                                 }
-                                jQuery('#apple-pay-wrapper').trigger('click');
                             },
                             onFailure: checkout.ajaxFailure.bind(checkout)
                         }
                     )
                 }
 
+                /**
+                 * Pours all necessary data retrieved from the quote into its right format.
+                 *
+                 * @param response
+                 * @returns {{lineItems: *, merchantIdentifier: *, cultureCode: *, countryCode: (string), totalLineItems: *, shippingType: string, storeName: *, currencyCode: *, shippingMethods: *}}
+                 */
                 ApplePay.prototype.processResponse = function(response) {
                     return {
-                        storeName: response.storeName,
+                        storeName: response.store_name,
                         countryCode: response.country_id,
-                        currencyCode: response.currencyCode,
-                        cultureCode: 'en',
+                        currencyCode: response.currency_code,
+                        cultureCode: response.culture_code,
                         merchantIdentifier: response.guid,
                         lineItems: this.processLineItems(response),
                         totalLineItems: this.processTotalLineItems(response),
@@ -119,21 +94,33 @@
                     }
                 }
 
+                /**
+                 * Processes the Subtotal and Delivery Costs.
+                 *
+                 * @param response
+                 * @returns {*[]}
+                 */
                 ApplePay.prototype.processLineItems = function(response) {
                     var subTotal = parseFloat(response.subtotal).toFixed(2);
                     var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
 
                     return [
-                        {label: 'Subtotal', amount: subTotal, type: 'final'},
-                        {label: 'Delivery', amount: shippingInclTax, type: 'final'}
+                        {label: <?php echo $this->__('Subtotal'); ?>, amount: subTotal, type: 'final'},
+                        {label: <?php echo $this->__('Delivery'); ?>, amount: shippingInclTax, type: 'final'}
                     ]
                 }
 
+                /**
+                 * Processes the
+                 *
+                 * @param response
+                 * @returns {{amount: string, label: string, type: string}}
+                 */
                 ApplePay.prototype.processTotalLineItems = function(response) {
                     var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
 
                     return {
-                        label: 'Test Store', amount: shippingInclTax, type: 'final'
+                        label: response.store_name, amount: shippingInclTax, type: 'final'
                     }
                 }
 
@@ -162,7 +149,7 @@
                         var errors = authorizationResult.errors.map(function(error) {
                             return error.message
                         })
-                        this.showError('Your payment could not be processed. ' + errors.join(' '))
+                        this.showError(<?php echo $this->__('Your payment could not be processed: '); ?> + errors.join(' '))
                         authorizationResult.errors.forEach(function(error) {
                             console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
                         })
