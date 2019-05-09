@@ -3,11 +3,13 @@
  * Empty div's to be used for the ApplePay pop-up.
  */
 ?>
-<div id="set-up-apple-pay-button"
-     class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
-<div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
-<div id="apple-pay-wrapper" lang="en"
-     class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
+<div id="buckaroo-apple-pay-popup" style="display: none; background-color: white; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <div id="set-up-apple-pay-button"
+         class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
+    <div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
+    <div id="apple-pay-wrapper" lang="en"
+         class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
+</div>
 <script>
     /**
      * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
@@ -67,6 +69,7 @@
                                 if (typeof ApplePaySession !== 'undefined') {
                                     var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
                                     payment.showPayButton("black");
+                                    jQuery('#buckaroo-apple-pay-popup').show();
                                 }
                             },
                             onFailure: checkout.ajaxFailure.bind(checkout)
@@ -105,8 +108,8 @@
                     var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
 
                     return [
-                        {label: <?php echo $this->__('Subtotal'); ?>, amount: subTotal, type: 'final'},
-                        {label: <?php echo $this->__('Delivery'); ?>, amount: shippingInclTax, type: 'final'}
+                        {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal, type: 'final'},
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: shippingInclTax, type: 'final'}
                     ]
                 }
 
@@ -132,7 +135,7 @@
                             label: response.shipping_description,
                             amount: shippingInclTax,
                             identifier: response.shipping_method,
-                            detail: null
+                            detail: '<?php echo $this->__('Shipping Method selected during checkout.'); ?>'
                         }
                     ]
                 }
@@ -149,7 +152,7 @@
                         var errors = authorizationResult.errors.map(function(error) {
                             return error.message
                         })
-                        this.showError(<?php echo $this->__('Your payment could not be processed: '); ?> + errors.join(' '))
+                        this.showError('<?php echo $this->__('Your payment could not be processed: '); ?>' + errors.join(' '))
                         authorizationResult.errors.forEach(function(error) {
                             console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
                         })
