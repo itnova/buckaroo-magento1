@@ -71,6 +71,7 @@
                         {
                             method: 'post',
                             onSuccess: function(response) {
+                                debugger;
                                 var results = self.processResponse(response.responseJSON)
                                 var options = new BuckarooSdk.ApplePay.ApplePayOptions(
                                     results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
@@ -82,8 +83,7 @@
                                         var payment = new BuckarooSdk.ApplePay.ApplePayPayment("#apple-pay-wrapper", options);
                                         payment.showPayButton("black");
                                         jQuery('#buckaroo-apple-pay-popup').fadeIn('fast')
-                                    }
-                                    else {
+                                    } else {
                                         alert("ApplePay not available!");
                                     }
                                 });
@@ -137,10 +137,10 @@
                  * @returns {{amount: string, label: string, type: string}}
                  */
                 ApplePay.prototype.processTotalLineItems = function(response) {
-                    var subTotal = parseFloat(response.subtotal).toFixed(2)
+                    var grandTotal = parseFloat(response.grand_total).toFixed(2)
 
                     return {
-                        label: response.store_name, amount: subTotal, type: 'final'
+                        label: response.store_name, amount: grandTotal, type: 'final'
                     }
                 }
 
