@@ -3,7 +3,8 @@
  * Empty div's to be used for the ApplePay pop-up.
  */
 ?>
-<div id="buckaroo-apple-pay-popup" style="display: none; background-color: white; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+<div id="buckaroo-apple-pay-popup"
+     style="display: none; background-color: white; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
     <div id="set-up-apple-pay-button"
          class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
     <div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
@@ -53,7 +54,7 @@
                  * Used to retrieve all data from the Quote and create ApplePay Payment Session.
                  */
                 ApplePay.prototype.initialize = function() {
-                    var self = this;
+                    var self = this
 
                     new Ajax.Request(
                         '/buckaroo3extended/checkout/applepay',
@@ -66,11 +67,11 @@
                                     results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
                                     results.shippingMethods, self.captureFunds
                                 )
-                                if (typeof ApplePaySession !== 'undefined') {
+                                if(typeof ApplePaySession !== 'undefined') {
                                     var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
-                                    payment.showPayButton("black");
-                                    jQuery('#buckaroo-apple-pay-popup').show();
+                                    payment.showPayButton('black')
                                 }
+                                jQuery('#buckaroo-apple-pay-popup').fadeIn('fast')
                             },
                             onFailure: checkout.ajaxFailure.bind(checkout)
                         }
@@ -104,8 +105,8 @@
                  * @returns {*[]}
                  */
                 ApplePay.prototype.processLineItems = function(response) {
-                    var subTotal = parseFloat(response.subtotal).toFixed(2);
-                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
+                    var subTotal = parseFloat(response.subtotal).toFixed(2)
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
 
                     return [
                         {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal, type: 'final'},
@@ -114,21 +115,27 @@
                 }
 
                 /**
-                 * Processes the
+                 * Processes the total lines for display.
                  *
                  * @param response
                  * @returns {{amount: string, label: string, type: string}}
                  */
                 ApplePay.prototype.processTotalLineItems = function(response) {
-                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
 
                     return {
                         label: response.store_name, amount: shippingInclTax, type: 'final'
                     }
                 }
 
+                /**
+                 * Processes the available information about the selected shipping method.
+                 *
+                 * @param response
+                 * @returns {{identifier, amount: string, label: *, detail: string}[]}
+                 */
                 ApplePay.prototype.createShippingMethodInformation = function(response) {
-                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2);
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
 
                     return [
                         {
@@ -140,6 +147,12 @@
                     ]
                 }
 
+                /**
+                 * Callback function used for processing the payment.
+                 *
+                 * @param payment
+                 * @returns {Promise<{errors: Array, status: *}>}
+                 */
                 ApplePay.prototype.captureFunds = function(payment) {
                     var authorizationResult = {
                         status: ApplePaySession.STATUS_SUCCESS,
@@ -148,6 +161,7 @@
                     $('#debug-wrapper').removeClass('d-none')
                     $('#debug').html(JSON.stringify(payment))
                     if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
+                        // We probably need to trigger Magento's save() function here.
                     } else {
                         var errors = authorizationResult.errors.map(function(error) {
                             return error.message
