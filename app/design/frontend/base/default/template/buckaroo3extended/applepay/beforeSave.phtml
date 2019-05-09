@@ -70,8 +70,8 @@
                                 if(typeof ApplePaySession !== 'undefined') {
                                     var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
                                     payment.showPayButton('black')
+                                    jQuery('#buckaroo-apple-pay-popup').fadeIn('fast')
                                 }
-                                jQuery('#buckaroo-apple-pay-popup').fadeIn('fast')
                             },
                             onFailure: checkout.ajaxFailure.bind(checkout)
                         }
