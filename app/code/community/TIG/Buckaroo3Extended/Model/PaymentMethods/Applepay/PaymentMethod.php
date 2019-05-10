@@ -61,4 +61,19 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_PaymentMethod extends 
     protected $_code = 'buckaroo3extended_applepay';
 
     protected $_formBlockType = 'buckaroo3extended/paymentMethods_applepay_checkout_form';
+
+    public function validate()
+    {
+        $postData = Mage::app()->getRequest()->getPost();
+
+        if(isset($postData['apple-pay-response'])) {
+            $this->getInfoInstance()->setAdditionalInformation(
+                array(
+                    $this->_code . '_response' => $postData['apple-pay-response']
+                )
+            );
+        }
+
+        return parent::validate();
+    }
 }

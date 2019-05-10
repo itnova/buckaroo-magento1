@@ -80,7 +80,6 @@
                         {
                             method: 'post',
                             onSuccess: function(response) {
-                                debugger
                                 var results = self.processResponse(response.responseJSON)
                                 var options = new BuckarooSdk.ApplePay.ApplePayOptions(
                                     results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
@@ -184,7 +183,8 @@
                         errors: []
                     }
                     if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
-                        jQuery('#apple-pay-response').val(JSON.stringify(payment.token))
+                        var paymentToken = JSON.stringify(payment.token)
+                        jQuery('#apple-pay-response').val(paymentToken)
                         jQuery(document).trigger('apple_pay_session_status_success')
                     } else {
                         var errors = authorizationResult.errors.map(function(error) {
