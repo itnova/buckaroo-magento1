@@ -1,4 +1,5 @@
 <?php
+
 /**
  *                  ___________       __            __
  *                  \__    ___/____ _/  |_ _____   |  |
@@ -47,6 +48,27 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $request->sendRequest();
     }
 
+    public function applepayAction()
+    {
+        $quote        = Mage::getModel('checkout/cart')->getQuote();
+        $store        = $quote->getStore();
+        $shippingData = $quote->getShippingAddress()->getData();
+        $localeCode   = Mage::app()->getLocale()->getLocaleCode();
+        $shortLocale  = explode('_', $localeCode)[0];
+
+        $storeName    = $store->getFrontendName();
+        $currencyCode = $quote->getStoreCurrencyCode();
+        $guid         = Mage::getStoreConfig('buckaroo/buckaroo3extended/guid', $store->getId());
+
+        $shippingData['culture_code']  = $shortLocale;
+        $shippingData['currency_code'] = $currencyCode;
+        $shippingData['guid']          = $guid;
+        $shippingData['store_name']    = $storeName;
+
+        $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
+        $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
+    }
+
     public function saveDataAction()
     {
         $data = $this->getRequest()->getPost();
@@ -57,7 +79,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             return;
         }
 
-        $name = $data['name'];
+        $name  = $data['name'];
         $value = $data['value'];
 
         $session = Mage::getSingleton('checkout/session');
@@ -82,7 +104,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $responseHandler = Mage::getModel('buckaroo3extended/response_abstract');
 
         /** @var Mage_Sales_Model_Order $order */
-        $order = $responseHandler->getOrder();
+        $order              = $responseHandler->getOrder();
         $response['status'] = $order->getState();
 
         switch ($response['status']) {
@@ -96,7 +118,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             case 'canceled':
                 $responseHandler->restoreQuote();
 
-                $config = Mage::getStoreConfig($responseHandler::BUCK_RESPONSE_DEFAUL_MESSAGE, $order->getStoreId());
+                $config       = Mage::getStoreConfig($responseHandler::BUCK_RESPONSE_DEFAUL_MESSAGE, $order->getStoreId());
                 $errorMessage = Mage::helper('buckaroo3extended')->__($config);
                 Mage::getSingleton('core/session')->addError($errorMessage);
 
@@ -118,7 +140,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
     protected function getSuccessUrl($storeId)
     {
         $returnLocation = Mage::getStoreConfig('buckaroo/buckaroo3extended_advanced/success_redirect', $storeId);
-        $succesUrl = Mage::getUrl($returnLocation, array('_secure' => true));
+        $succesUrl      = Mage::getUrl($returnLocation, array('_secure' => true));
 
         return $succesUrl;
     }
@@ -131,7 +153,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
     protected function getFailedUrl($storeId)
     {
         $returnLocation = Mage::getStoreConfig('buckaroo/buckaroo3extended_advanced/failure_redirect', $storeId);
-        $failedUrl = Mage::getUrl($returnLocation, array('_secure' => true));
+        $failedUrl      = Mage::getUrl($returnLocation, array('_secure' => true));
 
         return $failedUrl;
     }

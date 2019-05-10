@@ -1,0 +1,206 @@
+<?php
+/**
+ * Empty div's to be used for the ApplePay pop-up.
+ */
+?>
+<div id="buckaroo-apple-pay-popup"
+     style="display: none; background-color: white; padding: 20px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+    <?php echo $this->__('Click the button below to authorize your Apple Pay payment.'); ?>
+    <div id="set-up-apple-pay-button"
+         class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
+    <div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
+    <div id="apple-pay-wrapper" lang="en"
+         class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
+</div>
+<script>
+    /**
+     * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
+     *
+     * This triggers the Apple Pay pop-up to be shown after the Place Order-button is
+     * clicked, so the payment can be processed before any other actions are
+     * triggered.
+     */
+    Review.prototype.save = Review.prototype.save.wrap(function(save) {
+        /**
+         * If Apple Pay is not the selected Payment Method, fallback to normal execution.
+         */
+        if(payment.currentMethod !== 'buckaroo3extended_applepay') {
+            save()
+
+            return
+        }
+
+        /**
+         * This function is triggered to handle the entire Apple Pay process.
+         */
+        (function() {
+            var paymentFormId = '#' + payment.form
+            jQuery('<input>').attr({
+                type: 'hidden',
+                id: 'apple-pay-response',
+                name: 'apple-pay-response',
+                value: null
+            }).appendTo(paymentFormId)
+            var handler = new Buckaroo.Magento.ApplePay()
+            handler.initialize()
+        })()
+
+        /**
+         * When Apple Pay triggers a successful payment event, continue with normal
+         * execution.
+         */
+        jQuery(document).on('apple_pay_session_status_success', function() {
+            save()
+        })
+    })
+
+    var Buckaroo;
+    (function(Buckaroo) {
+        var Magento;
+        (function(Magento) {
+            var ApplePay = (function() {
+                /**
+                 * This is triggered first and can be used to update the Apple Pay pop-up with information from within
+                 * the wallet, or from within Magento, before it is displayed.
+                 */
+                function ApplePay() {
+                    this.updatePanel = function(panel, contact) {
+                        // Do something.
+                    }
+                }
+
+                /**
+                 * Used to retrieve all data from the Quote and create ApplePay Payment Session.
+                 */
+                ApplePay.prototype.initialize = function() {
+                    var self = this
+
+                    new Ajax.Request(
+                        '/buckaroo3extended/checkout/applepay',
+                        {
+                            method: 'post',
+                            onSuccess: function(response) {
+                                var results = self.processResponse(response.responseJSON)
+                                var options = new BuckarooSdk.ApplePay.ApplePayOptions(
+                                    results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
+                                    results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
+                                    results.shippingMethods, self.captureFunds
+                                )
+                                BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
+                                    if(applePaySupported) {
+                                        var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
+                                        payment.showPayButton('black')
+                                        jQuery('#buckaroo-apple-pay-popup').fadeIn('fast')
+                                    } else {
+                                        alert('ApplePay not available!')
+                                    }
+                                })
+                            },
+                            onFailure: checkout.ajaxFailure.bind(checkout)
+                        }
+                    )
+                }
+
+                /**
+                 * Pours all necessary data retrieved from the quote into its right format.
+                 *
+                 * @param response
+                 * @returns {{lineItems: *, merchantIdentifier: *, cultureCode: *, countryCode: (string), totalLineItems: *, shippingType: string, storeName: *, currencyCode: *, shippingMethods: *}}
+                 */
+                ApplePay.prototype.processResponse = function(response) {
+                    return {
+                        storeName: response.store_name,
+                        countryCode: response.country_id,
+                        currencyCode: response.currency_code,
+                        cultureCode: response.culture_code,
+                        merchantIdentifier: response.guid,
+                        lineItems: this.processLineItems(response),
+                        totalLineItems: this.processTotalLineItems(response),
+                        shippingType: 'shipping',
+                        // shippingMethods: null;
+                        shippingMethods: this.createShippingMethodInformation(response)
+                    }
+                }
+
+                /**
+                 * Processes the Subtotal and Delivery Costs.
+                 *
+                 * @param response
+                 * @returns {*[]}
+                 */
+                ApplePay.prototype.processLineItems = function(response) {
+                    var subTotal = parseFloat(response.subtotal).toFixed(2)
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
+
+                    return [
+                        {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal, type: 'final'},
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: shippingInclTax, type: 'final'}
+                    ]
+                }
+
+                /**
+                 * Processes the total lines for display.
+                 *
+                 * @param response
+                 * @returns {{amount: string, label: string, type: string}}
+                 */
+                ApplePay.prototype.processTotalLineItems = function(response) {
+                    var grandTotal = parseFloat(response.grand_total).toFixed(2)
+
+                    return {
+                        label: response.store_name, amount: grandTotal, type: 'final'
+                    }
+                }
+
+                /**
+                 * Processes the available information about the selected shipping method.
+                 *
+                 * @param response
+                 * @returns {{identifier, amount: string, label: *, detail: string}[]}
+                 */
+                ApplePay.prototype.createShippingMethodInformation = function(response) {
+                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
+
+                    return [
+                        {
+                            label: response.shipping_description,
+                            amount: shippingInclTax,
+                            identifier: response.shipping_method,
+                            detail: '<?php echo $this->__('Shipping Method selected during checkout.'); ?>'
+                        }
+                    ]
+                }
+
+                /**
+                 * Callback function used for processing the payment and sending it to Buckaroo.
+                 *
+                 * @param payment
+                 * @returns {Promise<{errors: Array, status: *}>}
+                 */
+                ApplePay.prototype.captureFunds = function(payment) {
+                    var authorizationResult = {
+                        status: ApplePaySession.STATUS_SUCCESS,
+                        errors: []
+                    }
+                    if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
+                        var paymentToken = JSON.stringify(payment.token)
+                        jQuery('#apple-pay-response').val(paymentToken)
+                        jQuery(document).trigger('apple_pay_session_status_success')
+                    } else {
+                        var errors = authorizationResult.errors.map(function(error) {
+                            return error.message
+                        })
+                        this.showError('<?php echo $this->__('Your payment could not be processed: '); ?>' + errors.join(' '))
+                        authorizationResult.errors.forEach(function(error) {
+                            console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
+                        })
+                    }
+                    return Promise.resolve(authorizationResult)
+                }
+
+                return ApplePay
+            }())
+            Magento.ApplePay = ApplePay
+        })(Magento = Buckaroo.Magento || (Buckaroo.Magento = {}))
+    })(Buckaroo || (Buckaroo = {}))
+</script>
