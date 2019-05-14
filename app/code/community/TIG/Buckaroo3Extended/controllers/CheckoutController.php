@@ -69,6 +69,137 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
     }
 
+    public function loadShippingMethodsAction()
+    {
+        $postData  = Mage::app()->getRequest()->getPost();
+        $wallet    = array();
+        if ($postData['wallet']) {
+            $wallet = $postData['wallet'];
+        }
+        /** @var Mage_Sales_Model_Quote $quote */
+        $quote   = Mage::getModel('checkout/session')->getQuote();
+        /** @var Mage_Sales_Model_Quote_Address $address */
+        $address = $quote->getShippingAddress();
+
+        $shippingAddress = array(
+            'prefix'     => '',
+            'firstname'  => '',
+            'middlename' => '',
+            'lastname'   => '',
+            'street'     => array(
+                '0' => '',
+                '1' => ''
+            ),
+            'city'       => $wallet['locality'],
+            'country_id' => $wallet['countryCode'],
+            'region'     => $wallet['administrativeArea'],
+            'region_id'  => '',
+            'postcode'   => $wallet['postalCode'],
+            'telephone'  => '',
+            'fax'        => '',
+            'vat_id'     => ''
+        );
+
+        $address->addData($shippingAddress);
+        $address->setCollectShippingRates(true);
+        $quote->setShippingAddress($address);
+        $quote->save();
+        $shippingMethods = Mage::getModel('checkout/cart_shipping_api')->getShippingMethodsList($quote->getId());
+
+        foreach ($shippingMethods as &$shippingMethod) {
+            $shippingMethod['price'] = round($shippingMethod['price'], 2);
+        }
+
+        $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
+        $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingMethods));
+    }
+
+    public function saveOrderAction()
+    {
+        /** @var Mage_Sales_Model_Quote $quote */
+        $quote = Mage::getModel('checkout/session')->getQuote();
+        $postData  = Mage::app()->getRequest()->getPost();
+
+        if (!$postData['payment']) {
+            return;
+        }
+
+        $shippingData = $postData['payment']['shippingContact'];
+        $walletShippingAddress = array(
+            'email'      => $shippingData['emailAddress'],
+            'prefix'     => '',
+            'firstname'  => $shippingData['givenName'],
+            'middlename' => '',
+            'lastname'   => $shippingData['familyName'],
+            'street'     => array(
+                '0' => $shippingData['addressLines'][0],
+                '1' => isset($shippingData['addressLines'][1]) ? $shippingData['addressLines'][1] : null
+            ),
+            'city'       => $shippingData['locality'],
+            'country_id' => $shippingData['countryCode'],
+            'region'     => $shippingData['administrativeArea'],
+            'region_id'  => '',
+            'postcode'   => $shippingData['postalCode'],
+            'telephone'  => '0000000000',
+            'fax'        => '',
+            'vat_id'     => ''
+        );
+
+        $billingData = $postData['payment']['billingContact'];
+        $walletBillingAddress = array(
+            'prefix'     => '',
+            'firstname'  => $billingData['givenName'],
+            'middlename' => '',
+            'lastname'   => $billingData['familyName'],
+            'street'     => array(
+                '0' => $billingData['addressLines'][0],
+                '1' => isset($billingData['addressLines'][1]) ? $billingData['addressLines'][1] : null
+            ),
+            'city'       => $billingData['locality'],
+            'country_id' => $billingData['countryCode'],
+            'region'     => $billingData['administrativeArea'],
+            'region_id'  => '',
+            'postcode'   => $billingData['postalCode'],
+            'telephone'  => '0000000000',
+            'fax'        => '',
+            'vat_id'     => ''
+        );
+
+        /** @var Mage_Sales_Model_Quote_Address $shippingAddress */
+        $shippingAddress = $quote->getShippingAddress();
+        $shippingAddress->addData($walletShippingAddress);
+        /** @var Mage_Sales_Model_Quote_Address $billingAddress */
+        $billingAddress  = $quote->getBillingAddress();
+        $billingAddress->addData($walletBillingAddress);
+
+        $customer = $quote->getCustomer();
+        if (!$customer->getId()) {
+            $quote->setCheckoutMethod('guest')
+                ->setCustomerId(null)
+                ->setCustomerEmail($quote->getShippingAddress()->getEmail())
+                ->setCustomerIsGuest(true)
+                ->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
+        }
+
+        $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
+        $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
+        $quote->collectTotals();
+        $quote->save();
+
+        $service = Mage::getModel('sales/service_quote', $quote);
+        $order = $service->submitOrder();
+        $order->save();
+
+        $request = Mage::getModel('buckaroo3extended/request_abstract');
+        $request->setOrder($order)->setOrderBillingInfo();
+        $request->sendRequest();
+
+        Mage::getSingleton('checkout/session')
+            ->setLastQuoteId($quote->getId())
+            ->setLastSuccessQuoteId($quote->getId())
+            ->clearHelperData();
+    }
+
     public function saveDataAction()
     {
         $data = $this->getRequest()->getPost();
