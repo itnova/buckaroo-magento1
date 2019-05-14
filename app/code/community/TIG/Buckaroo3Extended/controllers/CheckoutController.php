@@ -104,6 +104,10 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
 
         $shippingMethods = Mage::getModel('checkout/cart_shipping_api')->getShippingMethodsList($quote->getId());
 
+        foreach ($shippingMethods as &$shippingMethod) {
+            $shippingMethod['price'] = round($shippingMethod['price'], 2);
+        }
+
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingMethods));
     }

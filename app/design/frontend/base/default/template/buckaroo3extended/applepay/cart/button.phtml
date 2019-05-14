@@ -598,7 +598,7 @@
                     var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
                         optionsArray.merchantIdentifier, optionsArray.lineItems, optionsArray.totalLineItems, optionsArray.shippingType,
-                        optionsArray.shippingMethods, this.captureFunds, null, this.updateShippingContact);
+                        optionsArray.shippingMethods, this.captureFunds, this.updateShippingMethod, this.updateShippingContact);
 
                     BuckarooSdk.ApplePay.checkApplePaySupport(optionsArray.merchantIdentifier).then(function (applePaySupported) {
                         if (applePaySupported) {
@@ -610,10 +610,32 @@
                     })
                 }
 
+                ApplePay.prototype.updateShippingMethod = function(event) {
+                    var subTotal = parseFloat('<?php echo $this->getSubtotal() ?>')
+                    var delivery = parseFloat(event.amount)
+                    var grandTotal = subTotal + delivery
+
+                    var lineItems = [
+                        {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal.toString(), type: 'final'},
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: delivery.toString(), type: 'final'}
+                    ]
+
+                    var totalLineItem = {
+                        label: this.storeName, amount: grandTotal.toString(), type: 'final'
+                    }
+
+                    var updatedLines = {
+                        newTotal: totalLineItem,
+                        newLineItems: lineItems
+                    }
+
+                    return Promise.resolve(updatedLines);
+                }
+
                 ApplePay.prototype.updateShippingContact = function(wallet) {
-                    this.shippingContactUpdate = [];
                     var data = wallet;
-                    jQuery.ajax(
+
+                    var update = jQuery.ajax(
                         {
                             url: '/buckaroo3extended/checkout/loadShippingMethods',
                             method: 'post',
@@ -622,18 +644,19 @@
                                 wallet: data
                             },
                             async: false,
-                            success: function (response) {
-                                var shippingMethods = new ApplePay.prototype.createShippingMethodInformation(response);
-                                var totalLineItems  = new ApplePay.prototype.processTotalLineItems(response);
-                                var lineItems       = new ApplePay.prototype.processLineItems(response);
+                            dataFilter: function(data, type) {
+                                var dataArray = JSON.parse(data);
 
-                                this.shippingContactUpdate = [
-                                    {}, shippingMethods, totalLineItems, lineItems
-                                ]
+                                return JSON.stringify({
+                                        errors: [],
+                                        newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray),
+                                        newTotal: new ApplePay.prototype.processTotalLineItems(),
+                                        newLineItems: new ApplePay.prototype.processLineItems(dataArray)
+                                })
                             }
                         }
                     );
-                    return this.shippingContactUpdate;
+                    return update;
                 }
 
                 /**
@@ -648,7 +671,7 @@
                         currencyCode: '<?php echo $this->getCurrency() ?>',
                         cultureCode: '<?php echo $this->getCultureCode() ?>',
                         merchantIdentifier: '<?php echo $this->getGuid() ?>',
-                        lineItems: this.processLineItems(),
+                        lineItems: this.processLineItems(null),
                         totalLineItems: this.processTotalLineItems(),
                         shippingType: 'shipping',
                         shippingMethods: this.createShippingMethodInformation()
@@ -661,10 +684,19 @@
                  * @param response
                  * @returns {*[]}
                  */
-                ApplePay.prototype.processLineItems = function(response) {
+                ApplePay.prototype.processLineItems = function(data) {
+                    if (data === null || data === undefined) {
+                        return [
+                            {label: '<?php echo $this->__('Subtotal'); ?>', amount: '<?php echo $this->getSubtotal() ?>', type: 'final'},
+                            {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.00', type: 'final'}
+                        ]
+                    }
+
+                    var price = data[0].price
+
                     return [
                         {label: '<?php echo $this->__('Subtotal'); ?>', amount: '<?php echo $this->getSubtotal() ?>', type: 'final'},
-                        {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.01', type: 'final'}
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: price.toFixed(2), type: 'final'}
                     ]
                 }
 
@@ -674,7 +706,7 @@
                  * @param response
                  * @returns {{amount: string, label: string, type: string}}
                  */
-                ApplePay.prototype.processTotalLineItems = function(response) {
+                ApplePay.prototype.processTotalLineItems = function() {
                     return {
                         label: '<?php echo $this->getStoreName(); ?>', amount: '<?php echo $this->getGrandTotal() ?>', type: 'final'
                     }
@@ -696,7 +728,7 @@
                     for(var i = 0; i < shippingMethods.length; i++) {
                         methods[i] = {
                                 label: shippingMethods[i].carrier_title,
-                                amount: shippingMethods[i].price,
+                                amount: shippingMethods[i].price.toString(),
                                 identifier: shippingMethods[i].code,
                                 detail: shippingMethods[i].method_description
                         }
