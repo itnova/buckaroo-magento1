@@ -69,6 +69,45 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
     }
 
+    public function loadShippingMethodsAction()
+    {
+        $postData  = Mage::app()->getRequest()->getPost();
+        $wallet    = array();
+        if ($postData['wallet']) {
+            $wallet = $postData['wallet'];
+        }
+        /** @var Mage_Sales_Model_Quote $quote */
+        $quote   = Mage::getModel('checkout/cart')->getQuote();
+        /** @var Mage_Sales_Model_Quote_Address $address */
+        $address = Mage::getModel('sales/quote_address');
+
+        $shippingAddress = array(
+            'prefix'     => '',
+            'firstname'  => '',
+            'middlename' => '',
+            'lastname'   => '',
+            'street'     => array(
+                '0' => '',
+                '1' => ''
+            ),
+            'city'       => '',
+            'country_id' => $wallet['countryCode'],
+            'region'     => '',
+            'postcode'   => $wallet['postalCode'],
+            'telephone'  => '',
+            'fax'        => '',
+            'vat_id'     => ''
+        );
+
+        $address->addData($shippingAddress);
+        $quote->setShippingAddress($address);
+
+        $shippingMethods = Mage::getModel('checkout/cart_shipping_api')->getShippingMethodsList($quote->getId());
+
+        $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
+        $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingMethods));
+    }
+
     public function saveDataAction()
     {
         $data = $this->getRequest()->getPost();
