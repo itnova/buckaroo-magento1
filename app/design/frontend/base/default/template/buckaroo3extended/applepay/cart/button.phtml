@@ -581,6 +581,10 @@
 </script>
 
 <script>
+    jQuery(document).on('apple_pay_session_status_success', function(payment) {
+
+    })
+
     var Buckaroo;
     (function(Buckaroo) {
         var Magento;
@@ -632,8 +636,8 @@
                     return Promise.resolve(updatedLines);
                 }
 
-                ApplePay.prototype.updateShippingContact = function(wallet) {
-                    var data = wallet;
+                ApplePay.prototype.updateShippingContact = function(shipping) {
+                    var data = shipping;
 
                     var update = jQuery.ajax(
                         {
@@ -685,7 +689,7 @@
                  * @returns {*[]}
                  */
                 ApplePay.prototype.processLineItems = function(data) {
-                    if (data === null || data === undefined) {
+                    if (data === null || data === undefined || data.length < 1) {
                         return [
                             {label: '<?php echo $this->__('Subtotal'); ?>', amount: '<?php echo $this->getSubtotal() ?>', type: 'final'},
                             {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.00', type: 'final'}
@@ -749,7 +753,7 @@
                         errors: []
                     }
                     if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
-                        // Do something...
+                        new ApplePay.prototype.placeOrder(payment)
                     } else {
                         var errors = authorizationResult.errors.map(function(error) {
                             return error.message
@@ -760,6 +764,24 @@
                         })
                     }
                     return Promise.resolve(authorizationResult)
+                }
+
+                ApplePay.prototype.placeOrder = function(payment) {
+                    var data = payment;
+
+                    jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/saveOrder',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                payment: data
+                            },
+                            success: function(response) {
+                                // Done!
+                            }
+                        }
+                    );
                 }
 
                 return ApplePay
