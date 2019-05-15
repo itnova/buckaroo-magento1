@@ -49,5 +49,13 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
         return $guid;
     }
 
-
+    /**
+     * Is overwritten in the Block/Product/Button.php to see if we're on the product page or the shopping cart page.
+     *
+     * @return bool
+     */
+    public function isProductPage()
+    {
+        return false;
+    }
 }
