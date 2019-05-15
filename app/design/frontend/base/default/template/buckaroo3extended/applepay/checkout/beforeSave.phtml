@@ -33,10 +33,10 @@
     });
 
     Payment.prototype.save = Payment.prototype.save.wrap(function(save) {
-        if (!("ApplePaySession" in window) || ApplePaySession === undefined) {
+        if ((!("ApplePaySession" in window) || typeof ApplePaySession === 'undefined') && payment.currentMethod === 'buckaroo3extended_applepay') {
             alert('<?php echo $this->__('Apple Pay is not available on this device. Please select a different payment method.'); ?>');
 
-            return;git
+            return;
         }
 
         save();
