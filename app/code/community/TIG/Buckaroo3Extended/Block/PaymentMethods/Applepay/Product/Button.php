@@ -14,6 +14,6 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Product_Button
      */
     public function isProductPage()
     {
-        return false;
+        return true;
     }
 }
