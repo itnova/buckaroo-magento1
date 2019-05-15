@@ -581,10 +581,6 @@
 </script>
 
 <script>
-    jQuery(document).on('apple_pay_session_status_success', function(payment) {
-
-    })
-
     var Buckaroo;
     (function(Buckaroo) {
         var Magento;
@@ -633,7 +629,26 @@
                         newLineItems: lineItems
                     }
 
+                    // TODO: Testing.
+                    new ApplePay.prototype.setShippingMethod(method)
+
                     return Promise.resolve(updatedLines);
+                }
+
+                ApplePay.prototype.setShippingMethod = function (method) {
+                    jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/setShippingMethod',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                method: method
+                            },
+                            success: function(response) {
+                                // Done!
+                            }
+                        }
+                    );
                 }
 
                 ApplePay.prototype.updateShippingContact = function(shipping) {
@@ -654,7 +669,7 @@
                                 return JSON.stringify({
                                         errors: [],
                                         newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray),
-                                        newTotal: new ApplePay.prototype.processTotalLineItems(),
+                                        newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                         newLineItems: new ApplePay.prototype.processLineItems(dataArray)
                                 })
                             }
@@ -676,7 +691,7 @@
                         cultureCode: '<?php echo $this->getCultureCode() ?>',
                         merchantIdentifier: '<?php echo $this->getGuid() ?>',
                         lineItems: this.processLineItems(null),
-                        totalLineItems: this.processTotalLineItems(),
+                        totalLineItems: this.processTotalLineItems(null),
                         shippingType: 'shipping',
                         shippingMethods: this.createShippingMethodInformation()
                     }
@@ -696,6 +711,8 @@
                         ]
                     }
 
+                    new ApplePay.prototype.setShippingMethod(data[0].code)
+
                     var price = data[0].price
 
                     return [
@@ -710,9 +727,21 @@
                  * @param response
                  * @returns {{amount: string, label: string, type: string}}
                  */
-                ApplePay.prototype.processTotalLineItems = function() {
+                ApplePay.prototype.processTotalLineItems = function(data) {
+                    if (data === null || data === undefined || data.length < 1) {
+                        return {
+                            label: '<?php echo $this->getStoreName(); ?>',
+                            amount: '<?php echo $this->getGrandTotal() ?>',
+                            type: 'final'
+                        }
+                    }
+
+                    var price = data[0].price
+                    var grandTotal = parseFloat('<?php echo$this->getGrandTotal(); ?>')
+                    var newTotal = price + grandTotal
+
                     return {
-                        label: '<?php echo $this->getStoreName(); ?>', amount: '<?php echo $this->getGrandTotal() ?>', type: 'final'
+                        label: '<?php echo $this->getStoreName(); ?>', amount: newTotal.toFixed(2), type: 'final'
                     }
                 }
 
@@ -778,7 +807,7 @@
                                 payment: data
                             },
                             success: function(response) {
-                                // Done!
+                                window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
                             }
                         }
                     );

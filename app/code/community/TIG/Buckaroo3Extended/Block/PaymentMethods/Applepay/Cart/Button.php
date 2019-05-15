@@ -24,12 +24,12 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
 
     public function getSubtotal()
     {
-        return round(Mage::getModel('checkout/cart')->getQuote()->getSubtotal(), 2);
+        return round(Mage::getModel('checkout/session')->getQuote()->getBaseGrandTotal(), 2);
     }
 
     public function getGrandTotal()
     {
-        return round(Mage::getModel('checkout/cart')->getQuote()->getGrandTotal(),2);
+        return round(Mage::getModel('checkout/session')->getQuote()->getGrandTotal(),2);
     }
 
     public function getCultureCode()

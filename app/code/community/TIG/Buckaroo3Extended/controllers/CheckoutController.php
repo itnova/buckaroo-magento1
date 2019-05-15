@@ -69,6 +69,16 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
     }
 
+    public function setShippingMethodAction()
+    {
+        $postData = Mage::app()->getRequest()->getPost();
+        $quote    = Mage::getModel('checkout/session')->getQuote();
+        $address  = $quote->getShippingAddress();
+
+        $address->setShippingMethod($postData['method']);
+        $quote->save();
+    }
+
     public function loadShippingMethodsAction()
     {
         $postData  = Mage::app()->getRequest()->getPost();
@@ -193,11 +203,23 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $request = Mage::getModel('buckaroo3extended/request_abstract');
         $request->setOrder($order)->setOrderBillingInfo();
         $request->sendRequest();
+    }
 
-        Mage::getSingleton('checkout/session')
-            ->setLastQuoteId($quote->getId())
-            ->setLastSuccessQuoteId($quote->getId())
-            ->clearHelperData();
+    public function applepaySuccessAction()
+    {
+        $quote       = Mage::getModel('checkout/session')->getQuote();
+        $session     = Mage::getSingleton('checkout/type_onepage')->getCheckout();
+        $orderId     = Mage::getModel('sales/order')->getCollection()->getLastItem()->getEntityId();
+        $incrementId = Mage::getModel('sales/order')->getCollection()->getLastItem()->getIncrementId();
+
+        $session->clearHelperData();
+        $session->setLastSuccessQuoteId($quote->getId());
+        $session->setLastQuoteId($quote->getId());
+        $session->setLastOrderId($orderId);
+        $session->setLastRealOrderId($incrementId);
+        $session->setRedirectUrl('/checkout/onepage/success');
+
+        return $this->_redirect('checkout/onepage/success', array('_secure'=>true));
     }
 
     public function saveDataAction()
