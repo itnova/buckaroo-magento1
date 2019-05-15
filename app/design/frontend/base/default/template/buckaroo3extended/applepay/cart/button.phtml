@@ -610,6 +610,9 @@
                     })
                 }
 
+                /**
+                 * Triggered when Shipping Method is changed within the pop-up.
+                 */
                 ApplePay.prototype.updateShippingMethod = function(event) {
                     var subTotal = parseFloat('<?php echo $this->getSubtotal() ?>')
                     var delivery = parseFloat(event.amount)
@@ -635,6 +638,9 @@
                     return Promise.resolve(updatedLines);
                 }
 
+                /**
+                 * Updates the shipping method in the quote.
+                 */
                 ApplePay.prototype.setShippingMethod = function (method) {
                     jQuery.ajax(
                         {
@@ -651,6 +657,9 @@
                     );
                 }
 
+                /**
+                 * Handles the changes within the pop-up when a different shipping address is selected.
+                 */
                 ApplePay.prototype.updateShippingContact = function(shipping) {
                     var data = shipping;
 
@@ -800,6 +809,11 @@
                     return Promise.resolve(authorizationResult)
                 }
 
+                /**
+                 * Saves order to Magento and sends it to Buckaroo.
+                 *
+                 * @param payment
+                 */
                 ApplePay.prototype.placeOrder = function(payment) {
                     var data = payment;
 
