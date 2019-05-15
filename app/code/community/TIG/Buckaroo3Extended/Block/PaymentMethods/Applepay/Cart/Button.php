@@ -59,7 +59,7 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
      */
     public function getSubtotal()
     {
-        return round(Mage::getModel('checkout/cart')->getQuote()->getBaseGrandTotal(), 2);
+        return round(Mage::getModel('checkout/cart')->getQuote()->getSubtotalWithDiscount(), 2);
     }
 
     /**

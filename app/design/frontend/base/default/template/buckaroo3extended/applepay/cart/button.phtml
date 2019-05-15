@@ -605,7 +605,10 @@
                             var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
                             payment.showPayButton('black')
                         } else {
-                            alert('ApplePay not available!')
+                            jQuery('.method-checkout-cart-methods-applepay').hide()
+                            jQuery('#set-up-apple-pay-button').hide()
+                            jQuery('#apple-pay-button').hide()
+                            jQuery('#apple-pay-wrapper').hide()
                         }
                     })
                 }

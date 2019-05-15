@@ -156,6 +156,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
 
         foreach ($shippingMethods as &$shippingMethod) {
             $shippingMethod['price'] = round($shippingMethod['price'], 2);
+            $shippingMethod['method_description'] = $shippingMethod['method_description'] ?: '';
         }
 
         $shippingMethods['subTotal'] = $quote->getSubtotal();

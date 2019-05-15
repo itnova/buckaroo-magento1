@@ -32,6 +32,16 @@
         });
     });
 
+    Payment.prototype.save = Payment.prototype.save.wrap(function(save) {
+        if (!("ApplePaySession" in window) || ApplePaySession === undefined) {
+            alert('<?php echo $this->__('Apple Pay is not available on this device. Please select a different payment method.'); ?>');
+
+            return;git
+        }
+
+        save();
+    })
+
     /**
      * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
      *
