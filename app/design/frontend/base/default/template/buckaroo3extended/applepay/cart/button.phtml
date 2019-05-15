@@ -629,7 +629,26 @@
                         newLineItems: lineItems
                     }
 
+                    // TODO: Testing.
+                    new ApplePay.prototype.setShippingMethod(method)
+
                     return Promise.resolve(updatedLines);
+                }
+
+                ApplePay.prototype.setShippingMethod = function (method) {
+                    jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/setShippingMethod',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                method: method
+                            },
+                            success: function(response) {
+                                // Done!
+                            }
+                        }
+                    );
                 }
 
                 ApplePay.prototype.updateShippingContact = function(shipping) {
@@ -691,6 +710,8 @@
                             {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.00', type: 'final'}
                         ]
                     }
+
+                    new ApplePay.prototype.setShippingMethod(data[0].code)
 
                     var price = data[0].price
 
@@ -786,7 +807,7 @@
                                 payment: data
                             },
                             success: function(response) {
-                                // Done!
+                                window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
                             }
                         }
                     );
