@@ -138,6 +138,25 @@
             </reference>
     </checkout_cart_index>
 
+    <catalog_product_view>
+        <reference name="head">
+            <!--<block type="core/text" name="buckaroo">-->
+                <!--<action method="setText">-->
+                    <!--<text>-->
+                        <!--<![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>-->
+                    <!--</text>-->
+                <!--</action>-->
+            <!--</block>-->
+        </reference>
+        <reference name="product.info.addtocart">
+            <block type="buckaroo3extended/paymentMethods_applepay_product_button" name="product.info.applepay" as="applepay.product">
+                <action method="setTemplate">
+                    <template>buckaroo3extended/applepay/cart/button.phtml</template>
+                </action>
+            </block>
+        </reference>
+    </catalog_product_view>
+
     <sales_order_print>
         <reference name="order_totals">
             <block type="buckaroo3extended/paymentFee_sales_order_totals_fee" before="tax" name="buckaroo_fee"/>
