@@ -66,10 +66,13 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_PaymentMethod extends 
     {
         $postData = Mage::app()->getRequest()->getPost();
 
-        if(isset($postData['apple-pay-response']) || isset($postData['payment']['token']['paymentData'])) {
+        $applePayResponse = array();
+        $applePayResponse['postData'] = array_column($postData, 'postData');
+
+        if(count($applePayResponse)) {
             $this->getInfoInstance()->setAdditionalInformation(
                 array(
-                    $this->_code . '_response' => $postData['apple-pay-response'] ?: json_encode(array('paymentData' => $postData['payment']['token']['paymentData']))
+                    $this->_code . '_response' => $applePayResponse
                 )
             );
         }
