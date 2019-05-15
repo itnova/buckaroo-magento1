@@ -114,11 +114,16 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $address->setCollectShippingRates(true);
         $quote->setShippingAddress($address);
         $quote->save();
-        $shippingMethods = Mage::getModel('checkout/cart_shipping_api')->getShippingMethodsList($quote->getId());
+        /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
+        $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
+        $shippingMethods = $cartShippingApiModel->getShippingMethodsList($quote->getId());
 
         foreach ($shippingMethods as &$shippingMethod) {
             $shippingMethod['price'] = round($shippingMethod['price'], 2);
         }
+
+        $shippingMethods['subTotal'] = $quote->getSubtotal();
+        $shippingMethods['grandTotal'] = $quote->getGrandTotal();
 
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingMethods));
@@ -314,21 +319,22 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
     public function addToCartAction()
     {
         $postData = $this->getRequest()->getPost();
-        if (!$postData['productId']) {
+        if (!$postData['product']) {
 //            $this->getResponse()->setBody('error - no productid');
             return;
         }
 
-        $productId = $postData['productId'];
+        $product = $postData['product'];
 
         /** @var Mage_Checkout_Model_Cart $cart */
         $cart = Mage::getModel('checkout/cart');
+        $cart->truncate();
         $cart->init();
 
         /** @var Mage_Catalog_Model_Product $productCollection */
-        $productCollection = Mage::getModel('catalog/product')->load($productId);
+        $productCollection = Mage::getModel('catalog/product')->load($product['id']);
 
-        $cart->addProduct($productCollection, array('product_id' => $productId, 'qty' => 1));
+        $cart->addProduct($productCollection, array('product_id' => $product['id'], 'qty' => $product['qty']));
         $cart->save();
 
         $this->loadShippingMethodsAction();

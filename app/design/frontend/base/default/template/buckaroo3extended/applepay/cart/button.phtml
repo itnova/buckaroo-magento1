@@ -661,7 +661,10 @@
                             context: this,
                             data: {
                                 wallet: data,
-                                productId: <?php echo $this->getProductId(); ?>
+                                product: {
+                                    id: '<?php echo $this->getProductId(); ?>',
+                                    qty: jQuery('.add-to-cart #qty').val()
+                                }
                             },
                             async: false,
                             dataFilter: function(data, type) {
@@ -676,6 +679,7 @@
                             }
                         }
                     );
+
                     return update;
                 }
 
@@ -707,7 +711,7 @@
                 ApplePay.prototype.processLineItems = function(data) {
                     if (data === null || data === undefined || data.length < 1) {
                         return [
-                            {label: '<?php echo $this->__('Subtotal'); ?>', amount: '<?php echo $this->getSubtotal() ?>', type: 'final'},
+                            {label: '<?php echo $this->getSubtotalText(); ?>', amount: '0.00', type: 'final'},
                             {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.00', type: 'final'}
                         ]
                     }
@@ -716,8 +720,9 @@
 
                     var price = data[0].price
 
+
                     return [
-                        {label: '<?php echo $this->__('Subtotal'); ?>', amount: '<?php echo $this->getSubtotal() ?>', type: 'final'},
+                        {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
                         {label: '<?php echo $this->__('Delivery'); ?>', amount: price.toFixed(2), type: 'final'}
                     ]
                 }
@@ -732,17 +737,13 @@
                     if (data === null || data === undefined || data.length < 1) {
                         return {
                             label: '<?php echo $this->getStoreName(); ?>',
-                            amount: '<?php echo $this->getGrandTotal() ?>',
+                            amount: '0.00',
                             type: 'final'
                         }
                     }
 
-                    var price = data[0].price
-                    var grandTotal = parseFloat('<?php echo$this->getGrandTotal(); ?>')
-                    var newTotal = price + grandTotal
-
                     return {
-                        label: '<?php echo $this->getStoreName(); ?>', amount: newTotal.toFixed(2), type: 'final'
+                        label: '<?php echo $this->getStoreName(); ?>', amount: parseFloat(data['grandTotal']).toFixed(2), type: 'final'
                     }
                 }
 
@@ -760,6 +761,9 @@
                     }
 
                     for(var i = 0; i < shippingMethods.length; i++) {
+                        if (shippingMethods[i].carrier_title === undefined) {
+                            continue;
+                        }
                         methods[i] = {
                                 label: shippingMethods[i].carrier_title,
                                 amount: shippingMethods[i].price.toString(),
