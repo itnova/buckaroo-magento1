@@ -617,13 +617,15 @@
                  * Triggered when Shipping Method is changed within the pop-up.
                  */
                 ApplePay.prototype.updateShippingMethod = function(event) {
-                    var subTotal = parseFloat('<?php echo $this->getSubtotal() ?>')
+                    var subTotal = parseFloat('<?php echo $this->getSubtotal(); ?>')
                     var delivery = parseFloat(event.amount)
+                    var payment = parseFloat('<?php echo $this->getPaymentFee(); ?>')
                     var grandTotal = subTotal + delivery
 
                     var lineItems = [
                         {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal.toString(), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery'); ?>', amount: delivery.toString(), type: 'final'}
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: delivery.toString(), type: 'final'},
+                        {label: '<?php echo $this->__('Payment'); ?>', amount: payment.toString(), type: 'final'}
                     ]
 
                     var totalLineItem = {
@@ -635,8 +637,7 @@
                         newLineItems: lineItems
                     }
 
-                    // TODO: Testing.
-                    new ApplePay.prototype.setShippingMethod(method)
+                    new ApplePay.prototype.setShippingMethod(event.identifier)
 
                     return Promise.resolve(updatedLines);
                 }
@@ -724,18 +725,20 @@
                     if (data === null || data === undefined || data.length < 1) {
                         return [
                             {label: '<?php echo $this->getSubtotalText(); ?>', amount: '0.00', type: 'final'},
-                            {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.00', type: 'final'}
+                            {label: '<?php echo $this->__('Delivery'); ?>', amount: '0.00', type: 'final'},
+                            {label: '<?php echo $this->__('Payment'); ?>', amount: '0.00', type: 'final'}
                         ]
                     }
 
                     new ApplePay.prototype.setShippingMethod(data[0].code)
 
                     var price = data[0].price
-
+                    var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
 
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery'); ?>', amount: price.toFixed(2), type: 'final'}
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: price.toFixed(2), type: 'final'},
+                        {label: '<?php echo $this->__('Payment'); ?>', amount: payment.toFixed(2), type: 'final'}
                     ]
                 }
 
@@ -754,8 +757,11 @@
                         }
                     }
 
+                    var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
+                    var grandTotal = parseFloat(data['grandTotal']) + payment
+
                     return {
-                        label: '<?php echo $this->getStoreName(); ?>', amount: parseFloat(data['grandTotal']).toFixed(2), type: 'final'
+                        label: '<?php echo $this->getStoreName(); ?>', amount: grandTotal.toFixed(2) , type: 'final'
                     }
                 }
 

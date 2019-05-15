@@ -147,7 +147,6 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         );
 
         $address->addData($shippingAddress);
-        $address->setCollectShippingRates(true);
         $quote->setShippingAddress($address);
         $quote->save();
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */

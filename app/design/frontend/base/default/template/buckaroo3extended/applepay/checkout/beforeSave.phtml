@@ -161,10 +161,13 @@
                 ApplePay.prototype.processLineItems = function(response) {
                     var subTotal = parseFloat(response.subtotal).toFixed(2)
                     var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
+                    var payment = parseFloat(response.buckaroo_fee).toFixed(2)
+
 
                     return [
                         {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal, type: 'final'},
-                        {label: '<?php echo $this->__('Delivery'); ?>', amount: shippingInclTax, type: 'final'}
+                        {label: '<?php echo $this->__('Delivery'); ?>', amount: shippingInclTax, type: 'final'},
+                        {label: '<?php echo $this->__('Payment'); ?>', amount: payment, type: 'final'}
                     ]
                 }
 

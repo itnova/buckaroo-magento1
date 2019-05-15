@@ -64,10 +64,20 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
 
     /**
      * @return float
+     * @throws Mage_Core_Model_Store_Exception
+     */
+    public function getPaymentFee()
+    {
+        $storeId = Mage::app()->getStore()->getId();
+        return round(Mage::getStoreConfig('buckaroo/buckaroo3extended_applepay/payment_fee', $storeId), 2);
+    }
+
+    /**
+     * @return float
      */
     public function getGrandTotal()
     {
-        return round(Mage::getModel('checkout/cart')->getQuote()->getGrandTotal(),2);
+        return round(Mage::getModel('checkout/cart')->getQuote()->getGrandTotal(), 2);
     }
 
     /**
