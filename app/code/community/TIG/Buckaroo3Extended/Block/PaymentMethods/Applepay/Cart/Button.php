@@ -27,7 +27,8 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
      */
     public function getCountryCode()
     {
-        return 'NL';
+        $storeId = Mage::app()->getStore()->getId();
+        return Mage::getStoreConfig('general/country/default', $storeId) ?: 'US';
     }
 
     /**
