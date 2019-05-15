@@ -138,7 +138,7 @@
         </reference>
         <reference name="product.info.addtocart">
             <block type="buckaroo3extended/paymentMethods_applepay_product_button" name="product.info.applepay" as="applepay.product">
-                <action method="setTemplate">
+                <action method="setTemplate" ifconfig="buckaroo/buckaroo3extended_applepay/active">
                     <template>buckaroo3extended/applepay/cart/button.phtml</template>
                 </action>
             </block>
