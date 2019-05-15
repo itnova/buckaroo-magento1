@@ -760,8 +760,8 @@
                         return methods;
                     }
 
-                    for(var i = 0; i < shippingMethods.length; i++) {
-                        if (shippingMethods[i].carrier_title === undefined) {
+                    for(var i = 0; i < Object.keys(shippingMethods).length; i++) {
+                        if (shippingMethods[i] === undefined) {
                             continue;
                         }
                         methods[i] = {

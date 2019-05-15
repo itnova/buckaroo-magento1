@@ -48,6 +48,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $request->sendRequest();
     }
 
+    /**
+     * Apple Pay Controller
+     */
     public function applepayAction()
     {
         $quote        = Mage::getModel('checkout/cart')->getQuote();
@@ -69,6 +72,36 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingData));
     }
 
+    /**
+     * Creates a quote within product view for further processing.
+     * Used by Apple Pay.
+     */
+    public function addToCartAction()
+    {
+        $postData = $this->getRequest()->getPost();
+        if (!$postData['product']) {
+            return;
+        }
+
+        $product = $postData['product'];
+
+        /** @var Mage_Checkout_Model_Cart $cart */
+        $cart = Mage::getModel('checkout/cart');
+        $cart->truncate();
+        $cart->init();
+
+        /** @var Mage_Catalog_Model_Product $productCollection */
+        $productCollection = Mage::getModel('catalog/product')->load($product['id']);
+
+        $cart->addProduct($productCollection, array('product_id' => $product['id'], 'qty' => $product['qty']));
+        $cart->save();
+
+        $this->loadShippingMethodsAction();
+    }
+
+    /**
+     * Set Shipping Method if only one is available. [Apple Pay]
+     */
     public function setShippingMethodAction()
     {
         $postData = Mage::app()->getRequest()->getPost();
@@ -79,6 +112,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $quote->save();
     }
 
+    /**
+     * Load Shipping Methods.
+     */
     public function loadShippingMethodsAction()
     {
         $postData  = Mage::app()->getRequest()->getPost();
@@ -129,6 +165,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $this->getResponse()->setBody(Mage::helper('core')->jsonEncode($shippingMethods));
     }
 
+    /**
+     * Save Order [used in cart by Apple Pay]
+     */
     public function saveOrderAction()
     {
         /** @var Mage_Sales_Model_Quote $quote */
@@ -210,6 +249,12 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $request->sendRequest();
     }
 
+    /**
+     * Triggered when order is successfully authorized and sent to Buckaroo.
+     * Used by Apple Pay.
+     *
+     * @return Mage_Core_Controller_Varien_Action
+     */
     public function applepaySuccessAction()
     {
         $quote       = Mage::getModel('checkout/session')->getQuote();
@@ -302,7 +347,6 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
 
         return $succesUrl;
     }
-
     /**
      * @param $storeId
      *
@@ -314,30 +358,5 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $failedUrl      = Mage::getUrl($returnLocation, array('_secure' => true));
 
         return $failedUrl;
-    }
-
-    public function addToCartAction()
-    {
-        $postData = $this->getRequest()->getPost();
-        if (!$postData['product']) {
-//            $this->getResponse()->setBody('error - no productid');
-            return;
-        }
-
-        $product = $postData['product'];
-
-        /** @var Mage_Checkout_Model_Cart $cart */
-        $cart = Mage::getModel('checkout/cart');
-        $cart->truncate();
-        $cart->init();
-
-        /** @var Mage_Catalog_Model_Product $productCollection */
-        $productCollection = Mage::getModel('catalog/product')->load($product['id']);
-
-        $cart->addProduct($productCollection, array('product_id' => $product['id'], 'qty' => $product['qty']));
-        $cart->save();
-
-        $this->loadShippingMethodsAction();
-//        $this->getResponse()->setBody('successfully added product ' . $productId);
     }
 }
