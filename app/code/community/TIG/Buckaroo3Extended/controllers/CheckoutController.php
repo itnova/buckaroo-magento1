@@ -315,8 +315,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
     {
         $postData = $this->getRequest()->getPost();
         if (!$postData['productId']) {
-            $this->getResponse()->setBody('error - no productid');
-
+//            $this->getResponse()->setBody('error - no productid');
             return;
         }
 
@@ -324,16 +323,15 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
 
         /** @var Mage_Checkout_Model_Cart $cart */
         $cart = Mage::getModel('checkout/cart');
-
         $cart->init();
 
         /** @var Mage_Catalog_Model_Product $productCollection */
         $productCollection = Mage::getModel('catalog/product')->load($productId);
 
         $cart->addProduct($productCollection, array('product_id' => $productId, 'qty' => 1));
-
         $cart->save();
 
-        $this->getResponse()->setBody('successfully added product ' . $productId);
+        $this->loadShippingMethodsAction();
+//        $this->getResponse()->setBody('successfully added product ' . $productId);
     }
 }

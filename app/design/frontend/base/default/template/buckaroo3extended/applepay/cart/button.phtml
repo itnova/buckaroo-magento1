@@ -656,11 +656,12 @@
 
                     var update = jQuery.ajax(
                         {
-                            url: '/buckaroo3extended/checkout/loadShippingMethods',
+                            url: '<?php echo $this->getControllerUrl(); ?>',
                             method: 'post',
                             context: this,
                             data: {
-                                wallet: data
+                                wallet: data,
+                                productId: <?php echo $this->getProductId(); ?>
                             },
                             async: false,
                             dataFilter: function(data, type) {

@@ -2,6 +2,8 @@
 class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
     extends Mage_Adminhtml_Block_Abstract
 {
+    protected $isProductPage = false;
+
     public function __construct()
     {
         parent::_construct();
@@ -24,12 +26,12 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
 
     public function getSubtotal()
     {
-        return round(Mage::getModel('checkout/session')->getQuote()->getBaseGrandTotal(), 2);
+        return round(Mage::getModel('checkout/cart')->getQuote()->getBaseGrandTotal(), 2);
     }
 
     public function getGrandTotal()
     {
-        return round(Mage::getModel('checkout/session')->getQuote()->getGrandTotal(),2);
+        return round(Mage::getModel('checkout/cart')->getQuote()->getGrandTotal(),2);
     }
 
     public function getCultureCode()
@@ -54,8 +56,19 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
      *
      * @return bool
      */
-    public function isProductPage()
+    public function setProductPage()
     {
-        return false;
+        $this->isProductPage = false;
+    }
+
+    public function getControllerUrl()
+    {
+        $this->setProductPage();
+
+        if ($this->isProductPage) {
+            return $this->getUrl('buckaroo3extended/checkout/addToCart');
+        }
+
+        return $this->getUrl('buckaroo3extended/checkout/loadShippingMethods');
     }
 }
