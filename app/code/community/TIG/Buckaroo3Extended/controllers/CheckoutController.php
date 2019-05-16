@@ -179,10 +179,21 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
         $shippingMethods      = $cartShippingApiModel->getShippingMethodsList($quote->getId());
         
-        foreach ($shippingMethods as &$shippingMethod) {
-            $shippingMethod['price']              = round($shippingMethod['price'], 2);
-            $shippingMethod['method_description'] = $shippingMethod['method_description'] ?: '';
+        foreach ($shippingMethods as $index => $shippingMethod) {
+            $shippingMethods[$index]['price']              = round($shippingMethod['price'], 2);
+            $shippingMethods[$index]['method_description'] = $shippingMethod['method_description'] ?: '';
+            
+            if ($shippingMethod['code'] == $address->getShippingMethod() && $index != 0) {
+                $selectedIndex = $index;
+                $selectedShipping = $shippingMethods[$index];
+            }
         }
+        
+        if (isset($selectedIndex) && $selectedIndex > 0) {
+            unset($shippingMethods[$selectedIndex]);
+            array_unshift($shippingMethods, $selectedShipping);
+        }
+        
     
         $address->setShippingMethod($shippingMethods[0]['code']);
         $address->setShippingDescription('default');
