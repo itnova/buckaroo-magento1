@@ -617,30 +617,28 @@
                 /**
                  * Triggered when Shipping Method is changed within the pop-up.
                  */
-                ApplePay.prototype.updateShippingMethod = function(event) {
-                    var subTotal = parseFloat('<?php echo $this->getSubtotal(); ?>')
-                    var delivery = parseFloat(event.amount)
-                    var payment = parseFloat('<?php echo $this->getPaymentFee(); ?>')
-                    var grandTotal = subTotal + delivery
+                ApplePay.prototype.updateShippingMethod = function(method) {
+                    var update = jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/updateShippingMethods',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                wallet: method
+                            },
+                            async: false,
+                            dataFilter: function(data, type) {
+                                var dataArray = JSON.parse(data);
 
-                    var lineItems = [
-                        {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal.toString(), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery'); ?>', amount: delivery.toString(), type: 'final'},
-                        {label: '<?php echo $this->__('Payment'); ?>', amount: payment.toString(), type: 'final'}
-                    ]
+                                return JSON.stringify({
+                                    newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
+                                    newLineItems: new ApplePay.prototype.processLineItems(dataArray)
+                                })
+                            }
+                        }
+                    );
 
-                    var totalLineItem = {
-                        label: this.storeName, amount: grandTotal.toString(), type: 'final'
-                    }
-
-                    var updatedLines = {
-                        newTotal: totalLineItem,
-                        newLineItems: lineItems
-                    }
-
-                    new ApplePay.prototype.setShippingMethod(event.identifier)
-
-                    return Promise.resolve(updatedLines);
+                    return Promise.resolve(update);
                 }
 
                 /**
@@ -731,7 +729,7 @@
 
                     new ApplePay.prototype.setShippingMethod(data[0].code)
 
-                    var price = data[0].price
+                    var price = parseFloat(data[0].price)
                     var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
 
                     return [
@@ -756,8 +754,7 @@
                         }
                     }
 
-                    var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
-                    var grandTotal = parseFloat(data['grandTotal']) + payment
+                    var grandTotal = parseFloat(data['grandTotal'])
 
                     return {
                         label: '<?php echo $this->getStoreName(); ?>', amount: grandTotal.toFixed(2) , type: 'final'

@@ -100,7 +100,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             'qty'        => $product['qty']
         ));
         $cart->save();
-        
+
         $this->loadShippingMethodsAction();
     }
     
@@ -114,8 +114,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $session = Mage::getModel('checkout/session');
         $quote   = $session->getQuote();
         $address = $quote->getShippingAddress();
-        
-        $address->setShippingMethod($postData['method']);
+
+        $method  = isset($postData['method']) ? $postData['method'] : $postData['wallet']['identifier'];
+        $address->setShippingMethod($method);
         $quote->save();
     }
     
@@ -155,7 +156,13 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $address->addData($shippingAddress);
         $quote->setShippingAddress($address);
+
+        $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
+        $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
+        $quote->collectTotals();
+
         $quote->save();
+
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
         $shippingMethods      = $cartShippingApiModel->getShippingMethodsList($quote->getId());
@@ -164,14 +171,45 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $shippingMethod['price']              = round($shippingMethod['price'], 2);
             $shippingMethod['method_description'] = $shippingMethod['method_description'] ?: '';
         }
-        
-        $shippingMethods['subTotal']   = $quote->getSubtotal();
-        $shippingMethods['grandTotal'] = $quote->getGrandTotal();
+
+        $totals = $quote->getTotals();
+        $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
+        $shippingMethods['grandTotal'] = $totals['grand_total']->getValue();
         
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
         $this->getResponse()->setBody($coreHelper->jsonEncode($shippingMethods));
+    }
+
+    /**
+     * Triggered when a different shipping method is selected.
+     * Used by Apple Pay.
+     */
+    public function updateShippingMethodsAction()
+    {
+        $postData = Mage::app()->getRequest()->getPost();
+        $wallet   = array();
+        if ($postData['wallet']) {
+            $wallet = $postData['wallet'];
+        }
+
+        $this->setShippingMethodAction();
+
+        /** @var Mage_Sales_Model_Quote $quote */
+        $quote = Mage::getModel('checkout/session')->getQuote();
+        $quote->collectTotals();
+
+        $totals = $quote->getTotals();
+        $updateData['subTotal']   = $totals['subtotal']->getValue();
+        $updateData['grandTotal'] = $totals['grand_total']->getValue();
+        $updateData[0]->code      = $wallet['identifier'];
+        $updateData[0]->price     = $wallet['amount'];
+
+        /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
+        $coreHelper = Mage::helper('core');
+        $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
+        $this->getResponse()->setBody($coreHelper->jsonEncode($updateData));
     }
     
     /**
