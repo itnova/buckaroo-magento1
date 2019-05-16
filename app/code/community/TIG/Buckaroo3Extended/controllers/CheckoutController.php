@@ -55,7 +55,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $cart = Mage::getModel('checkout/cart');
         $quote = $cart->getQuote();
         $store = $quote->getStore();
-        $shippingData = $quote->getShippingAddress()->getData();
+        $address = $quote->getShippingAddress();
+        $shippingData = $address->getData();
         $localeCode = Mage::app()->getLocale()->getLocaleCode();
         $shortLocale = explode('_', $localeCode)[0];
 
@@ -67,6 +68,18 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $shippingData['currency_code'] = $currencyCode;
         $shippingData['guid'] = $guid;
         $shippingData['store_name'] = $storeName;
+        $shippingData['calculated_subtotal'] = $shippingData['subtotal_incl_tax'];
+
+        $buckarooFee = $address->getData('buckaroo_fee');
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+
+        $fee = $buckarooFee + $buckarooFeeTax;
+        if (count($address->getAppliedTaxes()) == 0) {
+            $fee = $buckarooFee;
+            $shippingData['calculated_subtotal'] = $shippingData['subtotal'];
+        }
+
+        $shippingData['payment_fee'] = $fee;
 
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');
