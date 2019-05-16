@@ -173,7 +173,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
         $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
-//        $quote->save();
+        $quote->save();
         
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
@@ -194,7 +194,6 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             array_unshift($shippingMethods, $selectedShipping);
         }
         
-    
         $address->setShippingMethod($shippingMethods[0]['code']);
         $address->setShippingDescription('default');
         $quote->save();
