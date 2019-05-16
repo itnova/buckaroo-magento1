@@ -170,10 +170,19 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $shippingMethod['method_description'] = $shippingMethod['method_description'] ?: '';
         }
 
+        $buckarooFee = $address->getData('buckaroo_fee');
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+
+        $fee = $buckarooFee + $buckarooFeeTax;
+        if (count($address->getAppliedTaxes()) == 0) {
+            $fee = $buckarooFee;
+        }
+
         $quote->collectTotals();
         $totals = $quote->getTotals();
         $shippingMethods['subTotal'] = $totals['subtotal']->getValue();
         $shippingMethods['shipping'] = $address->getData('shipping_incl_tax');
+        $shippingMethods['paymentFee'] = $fee;
         $shippingMethods['grandTotal'] = $totals['grand_total']->getValue();
 
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
@@ -202,12 +211,20 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
 
         $address = $quote->getShippingAddress();
 
+        $buckarooFee = $address->getData('buckaroo_fee');
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+
+        $fee = $buckarooFee + $buckarooFeeTax;
+        if (count($address->getAppliedTaxes()) == 0) {
+            $fee = $buckarooFee;
+        }
+
         $totals = $quote->getTotals();
         $updateData['subTotal'] = $totals['subtotal']->getValue();
         $updateData['shipping'] = $address->getData('shipping_incl_tax');
+        $updateData['paymentFee'] = $fee;
         $updateData['grandTotal'] = $totals['grand_total']->getValue();
         $updateData[0]->code = $wallet['identifier'];
-//        $updateData[0]->price = $wallet['amount'];
 
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');

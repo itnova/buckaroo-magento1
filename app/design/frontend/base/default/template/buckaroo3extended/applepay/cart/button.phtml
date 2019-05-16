@@ -727,13 +727,12 @@
                         ]
                     }
 
-                    // new ApplePay.prototype.setShippingMethod(data[0].code)
                     if (typeof data['shipping'] !== 'undefined') {
                         var price = parseFloat(data['shipping'])
                     } else {
                         var price = parseFloat(data[0].price)
                     }
-                    var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
+                    var payment = parseFloat(data['paymentFee'])
 
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
