@@ -575,7 +575,6 @@
                     this.shippingMethodSelectedCallback = shippingMethodSelectedCallback;
                     this.requiredBillingContactFields = requiredBillingContactFields;
                     this.requiredShippingContactFields = requiredShippingContactFields;
-
                 }
                 return ApplePayOptions;
             }());
@@ -592,7 +591,7 @@
         (function(Magento) {
             var ApplePay = (function() {
                 function ApplePay() {
-
+                
                 }
 
                 /**
@@ -682,7 +681,7 @@
 
                                 return JSON.stringify({
                                         errors: [],
-                                        newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray),
+                                        newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray, false),
                                         newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                         newLineItems: new ApplePay.prototype.processLineItems(dataArray)
                                 })
@@ -708,7 +707,7 @@
                         lineItems: this.processLineItems(null),
                         totalLineItems: this.processTotalLineItems(null),
                         shippingType: 'shipping',
-                        shippingMethods: this.createShippingMethodInformation()
+                        shippingMethods: this.createShippingMethodInformation(undefined, true)
                     }
                 }
 
@@ -729,8 +728,6 @@
 
                     if (typeof data['shipping'] !== 'undefined') {
                         var price = parseFloat(data['shipping'])
-                    } else {
-                        var price = parseFloat(data[0].price)
                     }
                     var payment = parseFloat(data['paymentFee'])
 
@@ -767,11 +764,17 @@
                  * Processes the available information about the selected shipping method.
                  *
                  * @param shippingMethods
+                 * @param onPageLoad
                  * @returns {{identifier, amount: string, label: *, detail: string}[]}
                  */
-                ApplePay.prototype.createShippingMethodInformation = function(shippingMethods) {
+                ApplePay.prototype.createShippingMethodInformation = function(shippingMethods, onPageLoad = true) {
                     var methods = [];
-
+                    
+                    if (onPageLoad === false && shippingMethods[0] === undefined) {
+                        /** We throw an exception here, to force Apple Pay to time out. */
+                        throw('<?php echo $this->__('Loading shipping methods failed. Please try again.') ?>')
+                    }
+                    
                     if (shippingMethods === undefined) {
                         return methods;
                     }
