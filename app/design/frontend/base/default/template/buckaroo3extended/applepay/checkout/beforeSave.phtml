@@ -112,7 +112,7 @@
                                 var options = new BuckarooSdk.ApplePay.ApplePayOptions(
                                     results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
                                     results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
-                                    results.shippingMethods, self.captureFunds
+                                    results.shippingMethods, self.captureFunds, [], [], [], []
                                 )
                                 BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
                                     if(applePaySupported) {
@@ -145,8 +145,8 @@
                         lineItems: this.processLineItems(response),
                         totalLineItems: this.processTotalLineItems(response),
                         shippingType: 'shipping',
-                        // shippingMethods: null;
-                        shippingMethods: this.createShippingMethodInformation(response)
+                        shippingMethods: []
+                        // shippingMethods: this.createShippingMethodInformation(response)
                     }
                 }
 
