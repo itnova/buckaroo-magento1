@@ -727,9 +727,12 @@
                         ]
                     }
 
-                    new ApplePay.prototype.setShippingMethod(data[0].code)
-
-                    var price = parseFloat(data[0].price)
+                    // new ApplePay.prototype.setShippingMethod(data[0].code)
+                    if (typeof data['shipping'] !== 'undefined') {
+                        var price = parseFloat(data['shipping'])
+                    } else {
+                        var price = parseFloat(data[0].price)
+                    }
                     var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
 
                     return [
