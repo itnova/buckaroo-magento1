@@ -2,6 +2,9 @@
 class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Product_Button
     extends TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
 {
+    /**
+     * @return mixed
+     */
     public function getProductId()
     {
         return Mage::registry('current_product')->getId();
@@ -14,6 +17,6 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Product_Button
      */
     public function setProductPage()
     {
-        $this->isProductPage = true;
+        return $this->isProductPage = true;
     }
 }

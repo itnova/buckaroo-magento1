@@ -8,7 +8,7 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
     /**
      * TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button constructor.
      */
-    public function __construct()
+    public function _construct()
     {
         parent::_construct();
     }
@@ -21,13 +21,15 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
     {
         return Mage::app()->getStore()->getCurrentCurrencyCode();
     }
-
+    
     /**
      * @return string
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function getCountryCode()
     {
-        $storeId = Mage::app()->getStore()->getId();
+        $store   = Mage::app()->getStore();
+        $storeId = $store->getId();
         return Mage::getStoreConfig('general/country/default', $storeId) ?: 'US';
     }
 
@@ -53,13 +55,16 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
 
         return $this->__('Subtotal');
     }
-
+    
     /**
      * @return float
      */
     public function getSubtotal()
     {
-        return round(Mage::getModel('checkout/cart')->getQuote()->getSubtotalWithDiscount(), 2);
+        /** @var Mage_Checkout_Model_Cart $cart */
+        $cart = Mage::getModel('checkout/cart');
+        
+        return round($cart->getQuote()->getSubtotalWithDiscount(), 2);
     }
 
     /**
@@ -71,13 +76,16 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
         $storeId = Mage::app()->getStore()->getId();
         return round(Mage::getStoreConfig('buckaroo/buckaroo3extended_applepay/payment_fee', $storeId), 2);
     }
-
+    
     /**
      * @return float
      */
     public function getGrandTotal()
     {
-        return round(Mage::getModel('checkout/cart')->getQuote()->getGrandTotal(), 2);
+        /** @var Mage_Checkout_Model_Cart $cart */
+        $cart = Mage::getModel('checkout/cart');
+        
+        return round($cart->getQuote()->getGrandTotal(), 2);
     }
 
     /**
@@ -90,15 +98,17 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
 
         return $shortLocale;
     }
-
+    
     /**
      * @return mixed
      */
     public function getGuid()
     {
-        $quote = Mage::getModel('checkout/cart')->getQuote();
+        /** @var Mage_Checkout_Model_Cart $cart */
+        $cart  = Mage::getModel('checkout/cart');
+        $quote = $cart->getQuote();
         $store = $quote->getStore();
-        $guid = Mage::getStoreConfig('buckaroo/buckaroo3extended/guid', $store->getId());
+        $guid  = Mage::getStoreConfig('buckaroo/buckaroo3extended/guid', $store->getId());
 
         return $guid;
     }
@@ -110,7 +120,7 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
      */
     public function setProductPage()
     {
-        $this->isProductPage = false;
+        return $this->isProductPage = false;
     }
 
     /**
