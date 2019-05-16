@@ -666,15 +666,13 @@
                  * Handles the changes within the pop-up when a different shipping address is selected.
                  */
                 ApplePay.prototype.updateShippingContact = function(shipping) {
-                    var data = shipping;
-
                     var update = jQuery.ajax(
                         {
                             url: '<?php echo $this->getControllerUrl(); ?>',
                             method: 'post',
                             context: this,
                             data: {
-                                wallet: data,
+                                wallet: shipping,
                                 product: {
                                     id: '<?php echo $this->getProductId(); ?>',
                                     qty: jQuery('.add-to-cart #qty').val()
@@ -717,9 +715,9 @@
                 }
 
                 /**
-                 * Processes the Subtotal and Delivery Costs.
                  *
-                 * @param response
+                 *
+                 * @param data
                  * @returns {*[]}
                  */
                 ApplePay.prototype.processLineItems = function(data) {
@@ -746,7 +744,7 @@
                 /**
                  * Processes the total lines for display.
                  *
-                 * @param response
+                 * @param data
                  * @returns {{amount: string, label: string, type: string}}
                  */
                 ApplePay.prototype.processTotalLineItems = function(data) {
@@ -769,7 +767,7 @@
                 /**
                  * Processes the available information about the selected shipping method.
                  *
-                 * @param response
+                 * @param shippingMethods
                  * @returns {{identifier, amount: string, label: *, detail: string}[]}
                  */
                 ApplePay.prototype.createShippingMethodInformation = function(shippingMethods) {
@@ -825,15 +823,13 @@
                  * @param payment
                  */
                 ApplePay.prototype.placeOrder = function(payment) {
-                    var data = payment;
-
                     jQuery.ajax(
                         {
                             url: '/buckaroo3extended/checkout/saveOrder',
                             method: 'post',
                             context: this,
                             data: {
-                                payment: data
+                                payment: payment
                             },
                             success: function(response) {
                                 window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
