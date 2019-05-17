@@ -205,11 +205,40 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         if (count($address->getAppliedTaxes()) == 0) {
             $fee = $buckarooFee;
         }
+    
+
+        $store = Mage::app()->getStore(); // store info
+        $shippingTaxIncluded = Mage::getStoreConfig('tax/calculation/shipping_includes_tax', $store);
+        
+        $fallbackShippingRate = $shippingMethods[0]['price'];
+        if ($fallbackShippingRate > 0) {
+            $countryCode = 'NL';
+            $taxByShippingEstimate = 21;
+            
+            if (isset($shippingAddress['country_id']) && $shippingAddress['country_id'] != 'NL'){
+                $taxByShippingEstimate = 0;
+            }
+            
+            // Inclusief is buitenlands minder
+            if ($shippingTaxIncluded == 1 && $taxByShippingEstimate != 21) {
+                $fallbackShippingRate = ($fallbackShippingRate * 100) / (121);
+            }
+    
+            // Exclusief is nederland meer
+            if ($shippingTaxIncluded == 0 && $taxByShippingEstimate == 21) {
+                $fallbackShippingRate = ($fallbackShippingRate * 121) / 100;
+            }
+    
+            $fallbackShippingRate = round($fallbackShippingRate,2);
+            
+        }
+        
+        
         
         $quote->collectTotals();
         $totals                        = $quote->getTotals();
         $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
-        $shippingMethods['shipping']   = $address->getData('shipping_incl_tax');
+        $shippingMethods['shipping']   = ($address->getData('shipping_incl_tax') > 0) ? $address->getData('shipping_incl_tax') : $fallbackShippingRate;
         $shippingMethods['paymentFee'] = $fee;
         $shippingMethods['grandTotal'] = $totals['grand_total']->getValue();
         

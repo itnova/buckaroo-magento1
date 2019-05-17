@@ -2,6 +2,16 @@
 /**
  * Empty div's to be used for the ApplePay pop-up.
  */
+
+/**
+ * @todo Add other productstypes
+ */
+if ($this->getRequest()->getControllerName() == 'product' &&
+    method_exists(Mage::registry('current_product'), 'getTypeId') &&
+    Mage::registry('current_product')->getTypeId() != 'simple') {
+  
+    return;
+}
 ?>
 <div id="set-up-apple-pay-button"
      class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none" style="display: none;"></div>
@@ -591,13 +601,14 @@
         (function(Magento) {
             var ApplePay = (function() {
                 function ApplePay() {
-                
+
                 }
 
                 /**
                  * Used to retrieve all data from the Quote and create ApplePay Payment Session.
                  */
                 ApplePay.prototype.initialize = function() {
+
                     var optionsArray = this.createOptionsArray();
                     var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
@@ -772,7 +783,8 @@
                     
                     if (onPageLoad === false && shippingMethods[0] === undefined) {
                         /** We throw an exception here, to force Apple Pay to time out. */
-                        throw('<?php echo $this->__('Loading shipping methods failed. Please try again.') ?>')
+                        //throw('<?php echo $this->__('Loading shipping methods failed. Please try again.') ?>')
+                        window.location.href = "/checkout/cart";
                     }
                     
                     if (shippingMethods === undefined) {
