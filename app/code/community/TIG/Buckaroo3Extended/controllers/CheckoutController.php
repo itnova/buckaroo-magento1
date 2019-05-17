@@ -144,8 +144,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         if ($postData['wallet']) {
             $wallet = $postData['wallet'];
         }
-        /** @var Mage_Sales_Model_Quote $quote */
-        $quote = Mage::getModel('checkout/session')->getQuote();
+        /** @var Mage_Checkout_Model_Session $session */
+        $session = Mage::getModel('checkout/session');
+        $quote   = $session->getQuote();
         /** @var Mage_Sales_Model_Quote_Address $address */
         $address = $quote->getShippingAddress();
         
@@ -169,22 +170,29 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         );
         
         $address->addData($shippingAddress);
+        $address->save();
         $quote->setShippingAddress($address);
+        
+        $address->setCollectShippingRates(true);
+        $address->collectShippingRates();
         
         $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
         $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
-        $quote->save();
         
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
         $shippingMethods      = $cartShippingApiModel->getShippingMethodsList($quote->getId());
+        
+        if (count($shippingMethods) == 0) {
+            $session->addError($this->__('Payment failed because no shipping methods were found. Select a shipping method in the Apple Pay pop-up and try again.'));
+        }
         
         foreach ($shippingMethods as $index => $shippingMethod) {
             $shippingMethods[$index]['price']              = round($shippingMethod['price'], 2);
             $shippingMethods[$index]['method_description'] = $shippingMethod['method_description'] ?: '';
             
             if ($shippingMethod['code'] == $address->getShippingMethod() && $index != 0) {
-                $selectedIndex = $index;
+                $selectedIndex    = $index;
                 $selectedShipping = $shippingMethods[$index];
             }
         }
@@ -195,7 +203,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         }
         
         $address->setShippingMethod($shippingMethods[0]['code']);
-        $address->setShippingDescription('default');
+        $address->save();
         $quote->save();
         
         $buckarooFee    = $address->getData('buckaroo_fee');
@@ -205,40 +213,11 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         if (count($address->getAppliedTaxes()) == 0) {
             $fee = $buckarooFee;
         }
-    
-
-        $store = Mage::app()->getStore(); // store info
-        $shippingTaxIncluded = Mage::getStoreConfig('tax/calculation/shipping_includes_tax', $store);
-        
-        $fallbackShippingRate = $shippingMethods[0]['price'];
-        if ($fallbackShippingRate > 0) {
-            $countryCode = 'NL';
-            $taxByShippingEstimate = 21;
-            
-            if (isset($shippingAddress['country_id']) && $shippingAddress['country_id'] != 'NL'){
-                $taxByShippingEstimate = 0;
-            }
-            
-            // Inclusief is buitenlands minder
-            if ($shippingTaxIncluded == 1 && $taxByShippingEstimate != 21) {
-                $fallbackShippingRate = ($fallbackShippingRate * 100) / (121);
-            }
-    
-            // Exclusief is nederland meer
-            if ($shippingTaxIncluded == 0 && $taxByShippingEstimate == 21) {
-                $fallbackShippingRate = ($fallbackShippingRate * 121) / 100;
-            }
-    
-            $fallbackShippingRate = round($fallbackShippingRate,2);
-            
-        }
-        
-        
         
         $quote->collectTotals();
         $totals                        = $quote->getTotals();
         $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
-        $shippingMethods['shipping']   = ($address->getData('shipping_incl_tax') > 0) ? $address->getData('shipping_incl_tax') : $fallbackShippingRate;
+        $shippingMethods['shipping']   = $address->getData('shipping_incl_tax');
         $shippingMethods['paymentFee'] = $fee;
         $shippingMethods['grandTotal'] = $totals['grand_total']->getValue();
         

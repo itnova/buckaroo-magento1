@@ -673,14 +673,14 @@ if ($this->getRequest()->getControllerName() == 'product' &&
                 /**
                  * Handles the changes within the pop-up when a different shipping address is selected.
                  */
-                ApplePay.prototype.updateShippingContact = function(shipping) {
+                ApplePay.prototype.updateShippingContact = function(context) {
                     var update = jQuery.ajax(
                         {
                             url: '<?php echo $this->getControllerUrl(); ?>',
                             method: 'post',
                             context: this,
                             data: {
-                                wallet: shipping,
+                                wallet: context,
                                 product: {
                                     id: '<?php echo $this->getProductId(); ?>',
                                     qty: jQuery('.add-to-cart #qty').val()
@@ -782,9 +782,10 @@ if ($this->getRequest()->getControllerName() == 'product' &&
                     var methods = [];
                     
                     if (onPageLoad === false && shippingMethods[0] === undefined) {
-                        /** We throw an exception here, to force Apple Pay to time out. */
-                        //throw('<?php echo $this->__('Loading shipping methods failed. Please try again.') ?>')
+                        /** An error is thrown and displayed in the cart, if no shipping methods are available. */
                         window.location.href = "/checkout/cart";
+                        
+                        return methods;
                     }
                     
                     if (shippingMethods === undefined) {
