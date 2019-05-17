@@ -2,6 +2,16 @@
 /**
  * Empty div's to be used for the ApplePay pop-up.
  */
+
+/**
+ * @todo Add other productstypes
+ */
+if ($this->getRequest()->getControllerName() == 'product' &&
+    method_exists(Mage::registry('current_product'), 'getTypeId') &&
+    Mage::registry('current_product')->getTypeId() != 'simple') {
+  
+    return;
+}
 ?>
 <div id="set-up-apple-pay-button"
      class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none" style="display: none;"></div>
@@ -575,7 +585,6 @@
                     this.shippingMethodSelectedCallback = shippingMethodSelectedCallback;
                     this.requiredBillingContactFields = requiredBillingContactFields;
                     this.requiredShippingContactFields = requiredShippingContactFields;
-
                 }
                 return ApplePayOptions;
             }());
@@ -599,6 +608,7 @@
                  * Used to retrieve all data from the Quote and create ApplePay Payment Session.
                  */
                 ApplePay.prototype.initialize = function() {
+
                     var optionsArray = this.createOptionsArray();
                     var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
@@ -617,30 +627,28 @@
                 /**
                  * Triggered when Shipping Method is changed within the pop-up.
                  */
-                ApplePay.prototype.updateShippingMethod = function(event) {
-                    var subTotal = parseFloat('<?php echo $this->getSubtotal(); ?>')
-                    var delivery = parseFloat(event.amount)
-                    var payment = parseFloat('<?php echo $this->getPaymentFee(); ?>')
-                    var grandTotal = subTotal + delivery
+                ApplePay.prototype.updateShippingMethod = function(method) {
+                    var update = jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/updateShippingMethods',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                wallet: method
+                            },
+                            async: false,
+                            dataFilter: function(data, type) {
+                                var dataArray = JSON.parse(data);
 
-                    var lineItems = [
-                        {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal.toString(), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery'); ?>', amount: delivery.toString(), type: 'final'},
-                        {label: '<?php echo $this->__('Payment'); ?>', amount: payment.toString(), type: 'final'}
-                    ]
+                                return JSON.stringify({
+                                    newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
+                                    newLineItems: new ApplePay.prototype.processLineItems(dataArray)
+                                })
+                            }
+                        }
+                    );
 
-                    var totalLineItem = {
-                        label: this.storeName, amount: grandTotal.toString(), type: 'final'
-                    }
-
-                    var updatedLines = {
-                        newTotal: totalLineItem,
-                        newLineItems: lineItems
-                    }
-
-                    new ApplePay.prototype.setShippingMethod(event.identifier)
-
-                    return Promise.resolve(updatedLines);
+                    return Promise.resolve(update);
                 }
 
                 /**
@@ -684,7 +692,7 @@
 
                                 return JSON.stringify({
                                         errors: [],
-                                        newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray),
+                                        newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray, false),
                                         newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                         newLineItems: new ApplePay.prototype.processLineItems(dataArray)
                                 })
@@ -710,7 +718,7 @@
                         lineItems: this.processLineItems(null),
                         totalLineItems: this.processTotalLineItems(null),
                         shippingType: 'shipping',
-                        shippingMethods: this.createShippingMethodInformation()
+                        shippingMethods: this.createShippingMethodInformation(undefined, true)
                     }
                 }
 
@@ -729,10 +737,10 @@
                         ]
                     }
 
-                    new ApplePay.prototype.setShippingMethod(data[0].code)
-
-                    var price = data[0].price
-                    var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
+                    if (typeof data['shipping'] !== 'undefined') {
+                        var price = parseFloat(data['shipping'])
+                    }
+                    var payment = parseFloat(data['paymentFee'])
 
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
@@ -756,8 +764,7 @@
                         }
                     }
 
-                    var payment = parseFloat('<?php echo $this->getPaymentFee();?>')
-                    var grandTotal = parseFloat(data['grandTotal']) + payment
+                    var grandTotal = parseFloat(data['grandTotal'])
 
                     return {
                         label: '<?php echo $this->getStoreName(); ?>', amount: grandTotal.toFixed(2) , type: 'final'
@@ -768,11 +775,18 @@
                  * Processes the available information about the selected shipping method.
                  *
                  * @param shippingMethods
+                 * @param onPageLoad
                  * @returns {{identifier, amount: string, label: *, detail: string}[]}
                  */
-                ApplePay.prototype.createShippingMethodInformation = function(shippingMethods) {
+                ApplePay.prototype.createShippingMethodInformation = function(shippingMethods, onPageLoad = true) {
                     var methods = [];
-
+                    
+                    if (onPageLoad === false && shippingMethods[0] === undefined) {
+                        /** We throw an exception here, to force Apple Pay to time out. */
+                        //throw('<?php echo $this->__('Loading shipping methods failed. Please try again.') ?>')
+                        window.location.href = "/checkout/cart";
+                    }
+                    
                     if (shippingMethods === undefined) {
                         return methods;
                     }

@@ -55,7 +55,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $cart         = Mage::getModel('checkout/cart');
         $quote        = $cart->getQuote();
         $store        = $quote->getStore();
-        $shippingData = $quote->getShippingAddress()->getData();
+        $address      = $quote->getShippingAddress();
+        $shippingData = $address->getData();
         $localeCode   = Mage::app()->getLocale()->getLocaleCode();
         $shortLocale  = explode('_', $localeCode)[0];
         
@@ -63,11 +64,23 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $currencyCode = $quote->getStoreCurrencyCode();
         $guid         = Mage::getStoreConfig('buckaroo/buckaroo3extended/guid', $store->getId());
         
-        $shippingData['culture_code']  = $shortLocale;
-        $shippingData['currency_code'] = $currencyCode;
-        $shippingData['guid']          = $guid;
-        $shippingData['store_name']    = $storeName;
-    
+        $shippingData['culture_code']        = $shortLocale;
+        $shippingData['currency_code']       = $currencyCode;
+        $shippingData['guid']                = $guid;
+        $shippingData['store_name']          = $storeName;
+        $shippingData['calculated_subtotal'] = $shippingData['subtotal_incl_tax'];
+        
+        $buckarooFee    = $address->getData('buckaroo_fee');
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+        
+        $fee = $buckarooFee + $buckarooFeeTax;
+        if (count($address->getAppliedTaxes()) == 0) {
+            $fee                                 = $buckarooFee;
+            $shippingData['calculated_subtotal'] = $shippingData['subtotal'];
+        }
+        
+        $shippingData['payment_fee'] = $fee;
+        
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
@@ -99,6 +112,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             'product_id' => $product['id'],
             'qty'        => $product['qty']
         ));
+        
         $cart->save();
         
         $this->loadShippingMethodsAction();
@@ -115,7 +129,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $quote   = $session->getQuote();
         $address = $quote->getShippingAddress();
         
-        $address->setShippingMethod($postData['method']);
+        $method = isset($postData['method']) ? $postData['method'] : $postData['wallet']['identifier'];
+        $address->setShippingMethod($method);
         $quote->save();
     }
     
@@ -143,11 +158,11 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
                 '0' => '',
                 '1' => ''
             ),
-            'city'       => $wallet['locality'],
-            'country_id' => $wallet['countryCode'],
-            'region'     => $wallet['administrativeArea'],
+            'city'       => isset($wallet['locality']) ? $wallet['locality'] : '',
+            'country_id' => isset($wallet['countryCode']) ? $wallet['countryCode'] : '',
+            'region'     => isset($wallet['administrativeArea']) ? $wallet['administrativeArea'] : '',
             'region_id'  => '',
-            'postcode'   => $wallet['postalCode'],
+            'postcode'   => isset($wallet['postalCode']) ? $wallet['postalCode'] : '',
             'telephone'  => '',
             'fax'        => '',
             'vat_id'     => ''
@@ -155,23 +170,123 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $address->addData($shippingAddress);
         $quote->setShippingAddress($address);
+        
+        $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
+        $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
         $quote->save();
+        
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
         $shippingMethods      = $cartShippingApiModel->getShippingMethodsList($quote->getId());
         
-        foreach ($shippingMethods as &$shippingMethod) {
-            $shippingMethod['price']              = round($shippingMethod['price'], 2);
-            $shippingMethod['method_description'] = $shippingMethod['method_description'] ?: '';
+        foreach ($shippingMethods as $index => $shippingMethod) {
+            $shippingMethods[$index]['price']              = round($shippingMethod['price'], 2);
+            $shippingMethods[$index]['method_description'] = $shippingMethod['method_description'] ?: '';
+            
+            if ($shippingMethod['code'] == $address->getShippingMethod() && $index != 0) {
+                $selectedIndex = $index;
+                $selectedShipping = $shippingMethods[$index];
+            }
         }
         
-        $shippingMethods['subTotal']   = $quote->getSubtotal();
-        $shippingMethods['grandTotal'] = $quote->getGrandTotal();
+        if (isset($selectedIndex) && $selectedIndex > 0) {
+            unset($shippingMethods[$selectedIndex]);
+            array_unshift($shippingMethods, $selectedShipping);
+        }
+        
+        $address->setShippingMethod($shippingMethods[0]['code']);
+        $address->setShippingDescription('default');
+        $quote->save();
+        
+        $buckarooFee    = $address->getData('buckaroo_fee');
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+        
+        $fee = $buckarooFee + $buckarooFeeTax;
+        if (count($address->getAppliedTaxes()) == 0) {
+            $fee = $buckarooFee;
+        }
+    
+
+        $store = Mage::app()->getStore(); // store info
+        $shippingTaxIncluded = Mage::getStoreConfig('tax/calculation/shipping_includes_tax', $store);
+        
+        $fallbackShippingRate = $shippingMethods[0]['price'];
+        if ($fallbackShippingRate > 0) {
+            $countryCode = 'NL';
+            $taxByShippingEstimate = 21;
+            
+            if (isset($shippingAddress['country_id']) && $shippingAddress['country_id'] != 'NL'){
+                $taxByShippingEstimate = 0;
+            }
+            
+            // Inclusief is buitenlands minder
+            if ($shippingTaxIncluded == 1 && $taxByShippingEstimate != 21) {
+                $fallbackShippingRate = ($fallbackShippingRate * 100) / (121);
+            }
+    
+            // Exclusief is nederland meer
+            if ($shippingTaxIncluded == 0 && $taxByShippingEstimate == 21) {
+                $fallbackShippingRate = ($fallbackShippingRate * 121) / 100;
+            }
+    
+            $fallbackShippingRate = round($fallbackShippingRate,2);
+            
+        }
+        
+        
+        
+        $quote->collectTotals();
+        $totals                        = $quote->getTotals();
+        $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
+        $shippingMethods['shipping']   = ($address->getData('shipping_incl_tax') > 0) ? $address->getData('shipping_incl_tax') : $fallbackShippingRate;
+        $shippingMethods['paymentFee'] = $fee;
+        $shippingMethods['grandTotal'] = $totals['grand_total']->getValue();
         
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
         $this->getResponse()->setBody($coreHelper->jsonEncode($shippingMethods));
+    }
+    
+    /**
+     * Triggered when a different shipping method is selected.
+     * Used by Apple Pay.
+     */
+    public function updateShippingMethodsAction()
+    {
+        $postData = Mage::app()->getRequest()->getPost();
+        $wallet   = array();
+        if ($postData['wallet']) {
+            $wallet = $postData['wallet'];
+        }
+        
+        $this->setShippingMethodAction();
+        
+        /** @var Mage_Sales_Model_Quote $quote */
+        $quote = Mage::getModel('checkout/session')->getQuote();
+        $quote->collectTotals();
+        
+        $address = $quote->getShippingAddress();
+        
+        $buckarooFee    = $address->getData('buckaroo_fee');
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+        
+        $fee = $buckarooFee + $buckarooFeeTax;
+        if (count($address->getAppliedTaxes()) == 0) {
+            $fee = $buckarooFee;
+        }
+        
+        $totals                   = $quote->getTotals();
+        $updateData['subTotal']   = $totals['subtotal']->getValue();
+        $updateData['shipping']   = $address->getData('shipping_incl_tax');
+        $updateData['paymentFee'] = $fee;
+        $updateData['grandTotal'] = $totals['grand_total']->getValue();
+        $updateData[0]->code      = $wallet['identifier'];
+        
+        /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
+        $coreHelper = Mage::helper('core');
+        $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
+        $this->getResponse()->setBody($coreHelper->jsonEncode($updateData));
     }
     
     /**

@@ -56,6 +56,14 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_Observer extends TIG_B
             )
         );
 
+        /** @var Mage_Sales_Model_Order $order */
+        $order = $request->getOrder();
+
+        /** @var Mage_Sales_Model_Order_Payment $payment */
+        $payment = $order->getPayment();
+        $payment->setAdditionalInformation('skip_push', 1);
+        $payment->save();
+
         if (array_key_exists('services', $vars) && is_array($vars['services'])) {
             $vars['services'] = array_merge($vars['services'], $array);
         } else {
