@@ -93,7 +93,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      */
     public function addToCartAction()
     {
-        $postData = $this->getRequest()->getPost();
+        $postData = $this->getRequest()->getPost() ?: $_GET;
         if (!$postData['product']) {
             return;
         }
@@ -107,10 +107,32 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         /** @var Mage_Catalog_Model_Product $productCollection */
         $productCollection = Mage::getModel('catalog/product')->load($product['id']);
+    
+        /**
+         * If product is configurable, build an array of the selected options.
+         */
+        $options           = array();
+        if ($productCollection->isConfigurable()) {
+            $form             = array_column($postData['product']['options'], 'value', 'name');
+            $availableOptions = $productCollection->getTypeInstance(true)->getConfigurableAttributes($productCollection)->getItems();
+            $selectedOptions  = array_filter(
+                $form, function ($name, $value) {
+                return (strpos($value, 'super_attribute') !== false);
+            }, ARRAY_FILTER_USE_BOTH
+            );
+            
+            foreach ($availableOptions as $option) {
+                $id = $option->getAttributeId();
+                if (array_key_exists("super_attribute[$id]", $selectedOptions)) {
+                    $options[$id] = $selectedOptions["super_attribute[$id]"];
+                }
+            }
+        }
         
         $cart->addProduct($productCollection, array(
-            'product_id' => $product['id'],
-            'qty'        => $product['qty']
+            'product_id'      => $product['id'],
+            'qty'             => $product['qty'],
+            'super_attribute' => $options
         ));
         
         $cart->save();
@@ -139,7 +161,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      */
     public function loadShippingMethodsAction()
     {
-        $postData = Mage::app()->getRequest()->getPost();
+        $postData = Mage::app()->getRequest()->getPost() ?: $_GET;
         $wallet   = array();
         if ($postData['wallet']) {
             $wallet = $postData['wallet'];
