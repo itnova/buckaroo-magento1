@@ -149,12 +149,12 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         /** @var Mage_Checkout_Model_Session $session */
         $session = Mage::getModel('checkout/session');
         $quote   = $session->getQuote();
-        $address = $quote->getShippingAddress();
+//        $address = $quote->getShippingAddress();
         
         $method = isset($postData['method']) ? $postData['method'] : $postData['wallet']['identifier'];
-        $address->setShippingMethod($method);
-        $address->save();
-        $quote->save();
+        /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
+        $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
+        $cartShippingApiModel->setShippingMethod($quote->getId(), $method);
     }
     
     /**
@@ -233,6 +233,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         }
         
         $address->setShippingMethod($shippingMethods[0]['code']);
+        /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
+        $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
+        $cartShippingApiModel->setShippingMethod($quote->getId(), $shippingMethods[0]['code']);
         $quote->save();
     
         $buckarooFee    = $address->getData('buckaroo_fee');
@@ -242,8 +245,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         if (count($address->getAppliedTaxes()) == 0) {
             $fee = $buckarooFee;
         }
-    
-        $quote->collectTotals();
+        
         $totals                        = $quote->getTotals();
         $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
         $shippingMethods['shipping']   = $address->getData('shipping_incl_tax');
