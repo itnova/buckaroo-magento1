@@ -79,6 +79,10 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $shippingData['calculated_subtotal'] = $shippingData['subtotal'];
         }
         
+        if (!isset($fee) || is_bool($fee)) {
+            $fee = 0;
+        }
+
         $shippingData['payment_fee'] = $fee;
         
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
@@ -246,6 +250,10 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $fee = $buckarooFee;
         }
         
+        if (!isset($fee) || is_bool($fee)) {
+            $fee = 0;
+        }
+
         $totals                        = $quote->getTotals();
         $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
         $shippingMethods['shipping']   = $address->getData('shipping_incl_tax');
@@ -286,6 +294,10 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $fee = $buckarooFee;
         }
         
+        if (!isset($fee) || is_bool($fee)) {
+            $fee = 0;
+        }
+
         $totals                   = $quote->getTotals();
         $updateData['subTotal']   = $totals['subtotal']->getValue();
         $updateData['shipping']   = $address->getData('shipping_incl_tax');
