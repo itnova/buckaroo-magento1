@@ -662,6 +662,8 @@
 
                 /**
                  * Handles the changes within the pop-up when a different shipping address is selected.
+                 *
+                 * Method = GET, since we need to send a serialized form if the product is configurable.
                  */
                 ApplePay.prototype.updateShippingContact = function(context) {
                     var options = jQuery('#product_addtocart_form').serializeArray()
