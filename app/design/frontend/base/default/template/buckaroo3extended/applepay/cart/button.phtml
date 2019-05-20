@@ -2,16 +2,6 @@
 /**
  * Empty div's to be used for the ApplePay pop-up.
  */
-
-/**
- * @todo Add other productstypes
- */
-if ($this->getRequest()->getControllerName() == 'product' &&
-    method_exists(Mage::registry('current_product'), 'getTypeId') &&
-    Mage::registry('current_product')->getTypeId() != 'simple') {
-  
-    return;
-}
 ?>
 <div id="set-up-apple-pay-button"
      class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none" style="display: none;"></div>
@@ -673,19 +663,23 @@ if ($this->getRequest()->getControllerName() == 'product' &&
                 /**
                  * Handles the changes within the pop-up when a different shipping address is selected.
                  */
-                ApplePay.prototype.updateShippingContact = function(shipping) {
+                ApplePay.prototype.updateShippingContact = function(context) {
+                    var options = jQuery('#product_addtocart_form').serializeArray()
+                    
                     var update = jQuery.ajax(
                         {
                             url: '<?php echo $this->getControllerUrl(); ?>',
-                            method: 'post',
+                            method: 'get',
                             context: this,
                             data: {
-                                wallet: shipping,
+                                wallet: context,
                                 product: {
                                     id: '<?php echo $this->getProductId(); ?>',
-                                    qty: jQuery('.add-to-cart #qty').val()
+                                    qty: jQuery('.add-to-cart #qty').val(),
+                                    options: options
                                 }
                             },
+                            dataType: 'json',
                             async: false,
                             dataFilter: function(data, type) {
                                 var dataArray = JSON.parse(data);
@@ -782,9 +776,10 @@ if ($this->getRequest()->getControllerName() == 'product' &&
                     var methods = [];
                     
                     if (onPageLoad === false && shippingMethods[0] === undefined) {
-                        /** We throw an exception here, to force Apple Pay to time out. */
-                        //throw('<?php echo $this->__('Loading shipping methods failed. Please try again.') ?>')
+                        /** An error is thrown and displayed in the cart, if no shipping methods are available. */
                         window.location.href = "/checkout/cart";
+                        
+                        return methods;
                     }
                     
                     if (shippingMethods === undefined) {
