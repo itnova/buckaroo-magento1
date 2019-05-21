@@ -12,6 +12,14 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
     {
         parent::_construct();
     }
+    
+    /**
+     * @return mixed
+     */
+    public function isConfigurable()
+    {
+        return false;
+    }
 
     /**
      * @return string
