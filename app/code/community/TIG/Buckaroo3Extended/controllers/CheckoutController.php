@@ -190,16 +190,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $shippingMethods = $cartShippingApiModel->getShippingMethodsList($quote->getId());
         
         /**
-         * Fallback to gather at least one shipping method.
-         */
-        if (count($shippingMethods) == 0) {
-            $address->setCollectShippingRates(false);
-            $quote->save();
-            $shippingMethods = $cartShippingApiModel->getShippingMethodsList($quote->getId());
-        }
-        
-        /**
-         * If all else fails...
+         * If no shipping methods are found.
          */
         if (count($shippingMethods) == 0) {
             $session->addError($this->__('Payment failed because no shipping methods were found. Select a shipping method in the Apple Pay pop-up and try again.'));
@@ -223,10 +214,12 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $this->setShippingMethodAction($shippingMethods[0]['code']);
     
         /**
-         * Reload quote, since shipping costs are lost in the above method.
+         * Reload quote, because we've modified it in setShippingMethodAction().
+         *
+         * @var Mage_Checkout_Model_Session $quote
          */
-        $address          = Mage::getModel('checkout/session')->getQuote()->getShippingAddress();
-        $totals           = $this->gatherTotals($address, $quote->getTotals());
+        $quote            = Mage::getModel('checkout/session')->getQuote();
+        $totals           = $this->gatherTotals($quote->getShippingAddress(), $quote->getTotals());
         $methodsAndTotals = $shippingMethods + $totals;
         
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
@@ -381,7 +374,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             'region'     => isset($wallet['administrativeArea']) ? $wallet['administrativeArea'] : '',
             'region_id'  => '',
             'postcode'   => isset($wallet['postalCode']) ? $wallet['postalCode'] : '',
-            'telephone'  => '0000000000',
+            'telephone'  => isset($wallet['phoneNumber']) ? $wallet['phoneNumber'] : 'N/A',
             'fax'        => '',
             'vat_id'     => ''
         );
