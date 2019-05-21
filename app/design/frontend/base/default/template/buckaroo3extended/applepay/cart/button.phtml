@@ -2,15 +2,19 @@
 /**
  * Empty div's to be used for the ApplePay pop-up.
  */
+
+$isConfigurable = ($this->getProductType() !== 'simple');
+
 ?>
 <div id="buckaroo-apple-pay-button">
     <div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none" style="display: none;"></div>
     <div id="apple-pay-button" class="apple-pay input-block-level d-none" style="display: none;"></div>
     <div id="apple-pay-wrapper" lang="en" class="apple-pay apple-pay-button apple-pay-button-black d-none" style="display: none;"></div>
-    <div id="apple-pay-disabled" class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
+    <div id="apple-pay-disabled" <?php echo $isConfigurable ? '' : 'style="display: none;"';?> class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
 </div>
 
 <script>
+    <?php if ($isConfigurable): ?>
     /**
      * Only display real Apple Pay button if all attributes are configured.
      */
@@ -32,6 +36,7 @@
             }
         })
     })
+    <?php endif; ?>
     
     var Buckaroo;
     (function(Buckaroo) {
@@ -50,11 +55,16 @@
                     var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
                         optionsArray.merchantIdentifier, optionsArray.lineItems, optionsArray.totalLineItems, optionsArray.shippingType,
-                        optionsArray.shippingMethods, this.captureFunds, this.updateShippingMethod, this.updateShippingContact);
+                        optionsArray.shippingMethods, this.captureFunds, this.updateShippingMethod, this.updateShippingContact,
+                        ["email", "name", "postalAddress"], ["email", "name", "phone", "postalAddress"]
+                    );
 
                     BuckarooSdk.ApplePay.checkApplePaySupport(optionsArray.merchantIdentifier).then(function (applePaySupported) {
                         if (applePaySupported) {
                             var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
+                            <?php if (!$isConfigurable): ?>
+                            jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper').show();
+                            <?php endif; ?>
                             payment.showPayButton('black')
                         }
                     })

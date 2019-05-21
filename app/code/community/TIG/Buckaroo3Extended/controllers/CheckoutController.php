@@ -400,8 +400,11 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         /** @var Mage_Checkout_Model_Type_Onepage $checkoutSingleton */
         $checkoutSingleton = Mage::getSingleton('checkout/type_onepage');
         $session           = $checkoutSingleton->getCheckout();
-        $orderId           = Mage::getModel('sales/order')->getCollection()->getLastItem()->getEntityId();
-        $incrementId       = Mage::getModel('sales/order')->getCollection()->getLastItem()->getIncrementId();
+        $orderCollection   = Mage::getModel('sales/order')->getCollection();
+        $orderCollection->getSelect()->order('entity_id DESC')->limit('1');
+        $lastItem          = $orderCollection->getLastItem();
+        $orderId           = $lastItem->getEntityId();
+        $incrementId       = $lastItem->getIncrementId();
         
         $session->clearHelperData();
         $session->setLastSuccessQuoteId($quote->getId());
