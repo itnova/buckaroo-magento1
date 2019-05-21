@@ -19,4 +19,12 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Product_Button
     {
         return $this->isProductPage = true;
     }
+    
+    /**
+     * @return mixed
+     */
+    public function isConfigurable()
+    {
+        return (Mage::registry('current_product')->getTypeId() === 'configurable');
+    }
 }
