@@ -181,14 +181,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
          */
         $address->setCollectShippingRates(true);
         
-        $session->setEstimatedShippingAddressData(
-            array(
-                'country_id' => isset($wallet['countryCode']) ? $wallet['countryCode'] : '',
-                'postcode'   => isset($wallet['postalCode']) ? $wallet['postalCode'] : '',
-                'city'       => isset($wallet['locality']) ? $wallet['locality'] : '',
-                'region'     => isset($wallet['administrativeArea']) ? $wallet['administrativeArea'] : ''
-            )
-        );
+        $session->setEstimatedShippingAddressData($shippingAddress);
         
         $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
         $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
