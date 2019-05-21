@@ -385,3 +385,7 @@ TIG_Buckaroo3Extended::Fee label, Betaaltoeslag label
 "Przelewy24","Przelewy24"
 "In3 version","In3 versie"
 "The In3 version can be found in your Capayable contract.","De In3 versie is terug te vinden in uw Capayable contract."
+"TIG_Buckaroo3Extended::subTotal","Subtotaal"
+"TIG_Buckaroo3Extended::Delivery costs","Verzendkosten"
+"TIG_Buckaroo3Extended::Payment fee","Betaaltoeslag"
+
