@@ -91,8 +91,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      */
     private function calculateBuckarooFee($address)
     {
-        $buckarooFee    = $address->getData('buckaroo_fee');
-        $buckarooFeeTax = $address->getData('buckaroo_fee_tax');
+        $buckarooFee    = $address->getData('buckaroo_fee') ?: 0;
+        $buckarooFeeTax = $address->getData('buckaroo_fee_tax') ?: 0;
         
         if (count($address->getAppliedTaxes()) == 0) {
             return $buckarooFee;
@@ -167,14 +167,18 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         /** @var Mage_Checkout_Model_Session $session */
         $session = Mage::getSingleton('checkout/session');
         $quote   = $session->getQuote();
+        $quote->save();
+        
         /** @var Mage_Sales_Model_Quote_Address $address */
         $address = $quote->getShippingAddress();
-        
         $shippingAddress = $this->processAddressFromWallet($wallet, 'shipping');
         
         $address->addData($shippingAddress);
         $quote->setShippingAddress($address);
-        /** Apparently this affects the loading of the shipping methods and differs in existing or new sessions. */
+        /**
+         * Apparently this affects the loading of the shipping methods and differs in existing or new sessions.
+         * It's important the quote is saved before setting this parameter.
+         */
         $address->setCollectShippingRates(true);
         
         $session->setEstimatedShippingAddressData(
@@ -192,12 +196,22 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
-        $shippingMethods      = $cartShippingApiModel->getShippingMethodsList($quote->getId());
+        $shippingMethods = $cartShippingApiModel->getShippingMethodsList($quote->getId());
         
+        /**
+         * Fallback to gather at least one shipping method.
+         */
+        if (count($shippingMethods) == 0) {
+            $address->setCollectShippingRates(false);
+            $quote->save();
+            $shippingMethods = $cartShippingApiModel->getShippingMethodsList($quote->getId());
+        }
+        
+        /**
+         * If all else fails...
+         */
         if (count($shippingMethods) == 0) {
             $session->addError($this->__('Payment failed because no shipping methods were found. Select a shipping method in the Apple Pay pop-up and try again.'));
-            $address->setCollectShippingRates(false);
-            $shippingMethods      = $cartShippingApiModel->getShippingMethodsList($quote->getId());
         }
         
         foreach ($shippingMethods as $index => $shippingMethod) {
@@ -216,17 +230,32 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         }
         
         $this->setShippingMethodAction($shippingMethods[0]['code']);
-    
-        $totals                        = $quote->getTotals();
-        $shippingMethods['subTotal']   = $totals['subtotal']->getValue();
-        $shippingMethods['shipping']   = $address->getData('shipping_incl_tax');
-        $shippingMethods['paymentFee'] = $this->calculateBuckarooFee($address);
-        $shippingMethods['grandTotal'] = $totals['grand_total']->getValue();
-    
+        
+        $totals           = $this->gatherTotals($address, $quote->getTotals());
+        $methodsAndTotals = $shippingMethods + $totals;
+        
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json', true);
-        $this->getResponse()->setBody($coreHelper->jsonEncode($shippingMethods));
+        $this->getResponse()->setBody($coreHelper->jsonEncode($methodsAndTotals));
+    }
+    
+    /**
+     * @param $address
+     * @param $quoteTotals
+     *
+     * @return array
+     */
+    private function gatherTotals($address, $quoteTotals)
+    {
+        $totals = array(
+            'subTotal'   => $quoteTotals['subtotal']->getValue(),
+            'shipping'   => $address->getData('shipping_incl_tax'),
+            'paymentFee' => $this->calculateBuckarooFee($address),
+            'grandTotal' => $quoteTotals['grand_total']->getValue()
+        );
+        
+        return $totals;
     }
     
     /**
@@ -269,12 +298,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $address = $quote->getShippingAddress();
         
-        $totals                   = $quote->getTotals();
-        $updateData['subTotal']   = $totals['subtotal']->getValue();
-        $updateData['shipping']   = $address->getData('shipping_incl_tax');
-        $updateData['paymentFee'] = $this->calculateBuckarooFee($address);
-        $updateData['grandTotal'] = $totals['grand_total']->getValue();
-        $updateData[0]->code      = $wallet['identifier'];
+        $updateData          = $this->gatherTotals($address, $quote->getTotals());
+        $updateData[0]->code = $wallet['identifier'];
         
         /** @var Mage_Core_Helper_Data $coreHelper $coreHelper */
         $coreHelper = Mage::helper('core');
@@ -337,27 +362,38 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $request->sendRequest();
     }
     
-    private function processAddressFromWallet($walletData, $type = 'shipping')
+    /**
+     * @param        $wallet
+     * @param string $type
+     *
+     * @return array
+     */
+    private function processAddressFromWallet($wallet, $type = 'shipping')
     {
-        return array(
-            'email'      => (isset($walletData['emailAddress']) && $type == 'shipping') ? $walletData['emailAddress'] : '',
+        $address = array(
             'prefix'     => '',
-            'firstname'  => isset($walletData['givenName']) ? $walletData['givenName'] : '',
+            'firstname'  => isset($wallet['givenName']) ? $wallet['givenName'] : '',
             'middlename' => '',
-            'lastname'   => isset($walletData['familyName']) ? $walletData['familyName'] : '',
+            'lastname'   => isset($wallet['familyName']) ? $wallet['familyName'] : '',
             'street'     => array(
-                '0' => isset($walletData['addressLines'][0]) ? $walletData['addressLines'][0] : '',
-                '1' => isset($shippingData['addressLines'][1]) ? $shippingData['addressLines'][1] : null
+                '0' => isset($wallet['addressLines'][0]) ? $wallet['addressLines'][0] : '',
+                '1' => isset($wallet['addressLines'][1]) ? $wallet['addressLines'][1] : null
             ),
-            'city'       => isset($walletData['locality']) ? $walletData['locality'] : '',
-            'country_id' => isset($walletData['countryCode']) ? $walletData['countryCode'] : '',
-            'region'     => isset($walletData['administrativeArea']) ? $walletData['administrativeArea'] : '',
+            'city'       => isset($wallet['locality']) ? $wallet['locality'] : '',
+            'country_id' => isset($wallet['countryCode']) ? $wallet['countryCode'] : '',
+            'region'     => isset($wallet['administrativeArea']) ? $wallet['administrativeArea'] : '',
             'region_id'  => '',
-            'postcode'   => isset($walletData['postalCode']) ? $walletData['postalCode'] : '',
+            'postcode'   => isset($wallet['postalCode']) ? $wallet['postalCode'] : '',
             'telephone'  => '0000000000',
             'fax'        => '',
             'vat_id'     => ''
         );
+        
+        if ($type == 'shipping') {
+            $address['email'] = isset($wallet['emailAddress']) ? $wallet['emailAddress'] : '';
+        }
+        
+        return $address;
     }
     
     /**
