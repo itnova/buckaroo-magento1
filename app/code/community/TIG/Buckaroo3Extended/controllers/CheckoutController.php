@@ -165,7 +165,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $wallet = $postData['wallet'];
         }
         /** @var Mage_Checkout_Model_Session $session */
-        $session = Mage::getSingleton('checkout/session');
+        $session = Mage::getModel('checkout/session');
         $quote   = $session->getQuote();
         $quote->save();
         
