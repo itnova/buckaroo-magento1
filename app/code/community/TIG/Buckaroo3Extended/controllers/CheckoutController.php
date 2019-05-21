@@ -167,7 +167,6 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         /** @var Mage_Checkout_Model_Session $session */
         $session = Mage::getModel('checkout/session');
         $quote   = $session->getQuote();
-        $quote->save();
         
         /** @var Mage_Sales_Model_Quote_Address $address */
         $address = $quote->getShippingAddress();
@@ -175,14 +174,13 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $address->addData($shippingAddress);
         $quote->setShippingAddress($address);
+        $session->setEstimatedShippingAddressData($shippingAddress);
         /**
          * Apparently this affects the loading of the shipping methods and differs in existing or new sessions.
-         * It's important the quote is saved before setting this parameter.
+         * It's important the quote is saved after setting this parameter.
          */
         $address->setCollectShippingRates(true);
-        
-        $session->setEstimatedShippingAddressData($shippingAddress);
-        
+    
         $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
         $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
         $quote->save();
@@ -223,7 +221,11 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         }
         
         $this->setShippingMethodAction($shippingMethods[0]['code']);
-        
+    
+        /**
+         * Reload quote, since shipping costs are lost in the above method.
+         */
+        $address          = Mage::getModel('checkout/session')->getQuote()->getShippingAddress();
         $totals           = $this->gatherTotals($address, $quote->getTotals());
         $methodsAndTotals = $shippingMethods + $totals;
         
@@ -270,6 +272,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         /** @var Mage_Checkout_Model_Cart_Shipping_Api $cartShippingApiModel */
         $cartShippingApiModel = Mage::getModel('checkout/cart_shipping_api');
         $cartShippingApiModel->setShippingMethod($quote->getId(), $method);
+        
+        return true;
     }
     
     /**
