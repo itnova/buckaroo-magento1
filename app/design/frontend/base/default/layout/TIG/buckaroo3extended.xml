@@ -109,13 +109,13 @@
 
     <checkout_cart_index>
         <reference name="head">
-            <!--<block type="core/text" name="buckaroo">-->
-                <!--<action method="setText">-->
-                    <!--<text>-->
-                        <!--<![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>-->
-                    <!--</text>-->
-                <!--</action>-->
-            <!--</block>-->
+            <block type="core/text" name="buckaroo">
+                <action method="setText">
+                    <text>
+                        <![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>
+                    </text>
+                </action>
+            </block>
         </reference>
             <reference name="checkout.cart.methods">
                 <block type="buckaroo3extended/paymentMethods_applepay_cart_button" name="checkout.cart.methods.applepay" as="checkout.applepay.cart.button">
@@ -128,13 +128,13 @@
 
     <catalog_product_view>
         <reference name="head">
-            <!--<block type="core/text" name="buckaroo">-->
-                <!--<action method="setText">-->
-                    <!--<text>-->
-                        <!--<![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>-->
-                    <!--</text>-->
-                <!--</action>-->
-            <!--</block>-->
+            <block type="core/text" name="buckaroo">
+                <action method="setText">
+                    <text>
+                        <![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>
+                    </text>
+                </action>
+            </block>
         </reference>
         <reference name="product.info.addtocart">
             <block type="buckaroo3extended/paymentMethods_applepay_product_button" name="product.info.applepay" as="applepay.product">
