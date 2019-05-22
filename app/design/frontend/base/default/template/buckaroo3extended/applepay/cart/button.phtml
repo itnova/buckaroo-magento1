@@ -150,6 +150,10 @@ $isConfigurable = $this->isConfigurable();
                                         newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                         newLineItems: new ApplePay.prototype.processLineItems(dataArray)
                                 })
+                            },
+                            error: function(error) {
+                                /** Reload window to show error in Magento */
+                                window.location.reload();
                             }
                         }
                     );
@@ -302,6 +306,10 @@ $isConfigurable = $this->isConfigurable();
                             },
                             success: function(response) {
                                 window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                            },
+                            error: function(error) {
+                                /** Reload window to show error in Magento */
+                                window.location.reload();
                             }
                         }
                     );

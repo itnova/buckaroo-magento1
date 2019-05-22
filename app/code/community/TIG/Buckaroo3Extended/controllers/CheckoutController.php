@@ -143,11 +143,19 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             }
         }
         
-        $cart->addProduct($productCollection, array(
-            'product_id'      => $product['id'],
-            'qty'             => $product['qty'],
-            'super_attribute' => $options
-        ));
+        /** @var Mage_Checkout_Model_Session $session */
+        $session = Mage::getModel('checkout/session');
+        
+        try {
+            $cart->addProduct($productCollection, array(
+                'product_id'      => $product['id'],
+                'qty'             => $product['qty'],
+                'super_attribute' => $options
+            ));
+        } catch (Mage_Core_Exception $e) {
+            $session->addError($this->__('Payment failed: ') . $e->getMessage());
+            throw new $e;
+        }
         
         $cart->save();
         
@@ -193,7 +201,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
          * If no shipping methods are found.
          */
         if (count($shippingMethods) == 0) {
-            $session->addError($this->__('Payment failed because no shipping methods were found. Select a shipping method in the Apple Pay pop-up and try again.'));
+            $session->addError($this->__('Apple Pay payment failed, because no shipping methods were found for the selected address. Please select a different shipping address within the pop-up or within your Apple Pay Wallet.'));
         }
         
         foreach ($shippingMethods as $index => $shippingMethod) {
@@ -341,15 +349,22 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $quote->collectTotals();
         $quote->save();
         
-        /** @var Mage_Sales_Model_Service_Quote $service */
-        $service = Mage::getModel('sales/service_quote', $quote);
-        $order   = $service->submitOrder();
-        $order->save();
+        $error = null;
         
-        /** @var TIG_Buckaroo3Extended_Model_Request_Abstract $request */
-        $request = Mage::getModel('buckaroo3extended/request_abstract');
-        $request->setOrder($order)->setOrderBillingInfo();
-        $request->sendRequest();
+        try {
+            /** @var Mage_Sales_Model_Service_Quote $service */
+            $service = Mage::getModel('sales/service_quote', $quote);
+            $order   = $service->submitOrder();
+            $order->save();
+            
+            /** @var TIG_Buckaroo3Extended_Model_Request_Abstract $request */
+            $request = Mage::getModel('buckaroo3extended/request_abstract');
+            $request->setOrder($order)->setOrderBillingInfo();
+            $request->sendRequest();
+        } catch (Exception $e) {
+            $session->addError($this->__('Order could not be submitted: ') . $e->getMessage());
+            throw new $e;
+        }
     }
     
     /**
