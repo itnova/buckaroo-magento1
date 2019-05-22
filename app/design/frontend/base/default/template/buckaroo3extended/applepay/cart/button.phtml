@@ -21,11 +21,31 @@ $isConfigurable = $this->isConfigurable();
     var elementsToValidate = jQuery('#apple-pay-disabled, li[id^="option"] span, li[id^="option"] img, [name^="options"]');
     
     elementsToValidate.on('click, mousedown, mouseup', function() {
+        /**
+         * Custom validation for Amac.
+         */
+        var cartButton = jQuery('button.button.btn-cart');
+        
+        if(cartButton.hasClass('disabled')) {
+            jQuery('.pdp-configurable-error').each(function () {
+                jQuery(this).removeClass('no-display');
+            });
+            
+            
+        } else {
+            jQuery('.pdp-configurable-error').each(function () {
+                jQuery(this).addClass('no-display');
+            });
+        }
+    
+        /**
+         * Validate Magento Configurable Product form.
+         */
         var fakeButton = jQuery('#apple-pay-disabled');
+        var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
         
         jQuery('[name^="super_attribute"]').each(function() {
             var valid = Validation.validate(this);
-            var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
             
             applePay.show();
             jQuery(fakeButton).hide();
