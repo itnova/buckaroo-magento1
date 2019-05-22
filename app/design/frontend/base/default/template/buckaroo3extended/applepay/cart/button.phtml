@@ -44,18 +44,27 @@ $isConfigurable = $this->isConfigurable();
         var fakeButton = jQuery('#apple-pay-disabled');
         var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
         
-        jQuery('[name^="super_attribute"]').each(function() {
+        var attributes = jQuery('[name^="super_attribute"]');
+        var validated  = 0;
+        
+        attributes.each(function() {
             var valid = Validation.validate(this);
             
-            applePay.show();
-            jQuery(fakeButton).hide();
-            
-            if (valid === false) {
-                applePay.hide();
-                jQuery(fakeButton).show();
-                
-                return this;
+            if (valid === true) {
+                validated++;
             }
+            
+            if (attributes.length === validated) {
+                console.log('All attributes selected');
+                
+                fakeButton.hide();
+                applePay.show();
+                
+                return;
+            }
+            
+            fakeButton.show();
+            applePay.hide();
         })
     })
     <?php endif; ?>
