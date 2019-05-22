@@ -68,6 +68,8 @@ $isConfigurable = $this->isConfigurable();
                             jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper').show();
                             <?php endif; ?>
                             payment.showPayButton('black')
+                        } else {
+                            jQuery('#apple-pay-disabled').hide();
                         }
                     })
                 }
