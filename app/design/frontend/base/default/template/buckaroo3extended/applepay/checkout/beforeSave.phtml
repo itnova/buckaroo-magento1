@@ -118,7 +118,7 @@
                                 /**
                                  * Hooking into this event allows overriding the options with custom values.
                                  */
-                                jQuery(document).trigger('buckaroo3extended_applepay_options', [ options ]);
+                                jQuery(document).trigger('buckaroo3extended_applepay_options', [this, options]);
                                 
                                 BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
                                     if(applePaySupported) {
