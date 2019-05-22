@@ -18,19 +18,21 @@ $isConfigurable = $this->isConfigurable();
     /**
      * Only display real Apple Pay button if all attributes are configured.
      */
-    jQuery('#apple-pay-disabled').on('click', function() {
-        var self = this;
+    var elementsToValidate = jQuery('#apple-pay-disabled, li[id^="option"] span, li[id^="option"] img, [name^="options"]');
+    
+    elementsToValidate.on('click, mousedown, mouseup', function() {
+        var fakeButton = jQuery('#apple-pay-disabled');
         
         jQuery('[name^="super_attribute"]').each(function() {
             var valid = Validation.validate(this);
             var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
             
             applePay.show();
-            jQuery(self).hide();
+            jQuery(fakeButton).hide();
             
             if (valid === false) {
                 applePay.hide();
-                jQuery(self).show();
+                jQuery(fakeButton).show();
                 
                 return this;
             }
