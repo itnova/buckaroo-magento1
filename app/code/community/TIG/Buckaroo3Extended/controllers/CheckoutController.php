@@ -104,10 +104,12 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
     /**
      * Creates a quote within product view for further processing.
      * Used by Apple Pay.
+     *
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function addToCartAction()
     {
-        $postData = $this->getRequest()->getPost() ?: $_GET;
+        $postData = $this->getRequest()->getPost() ?: $this->sanitizeParams($_GET);
         if (!$postData['product']) {
             return;
         }
@@ -163,11 +165,33 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
     }
     
     /**
+     * @param array $data
+     *
+     * @return array
+     * @throws Mage_Core_Model_Store_Exception
+     */
+    private function sanitizeParams(array $data)
+    {
+        if(Mage::app()->getStore()->isAdmin()) {
+            return $data;
+        }
+    
+        array_walk_recursive($data, function (&$value) {
+            $value = filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
+        });
+        
+        return $data;
+    }
+    
+    /**
      * Load Shipping Methods.
+     *
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function loadShippingMethodsAction()
     {
-        $postData = Mage::app()->getRequest()->getPost() ?: $_GET;
+        $postData = Mage::app()->getRequest()->getPost() ?: $this->sanitizeParams($_GET);
         $wallet   = array();
         if ($postData['wallet']) {
             $wallet = $postData['wallet'];
@@ -258,10 +282,13 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      * Set Shipping Method if only one is available. [Apple Pay]
      *
      * @param null $identifier
+     *
+     * @return bool
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function setShippingMethodAction($identifier = null)
     {
-        $postData = Mage::app()->getRequest()->getPost() ?: $_GET;
+        $postData = Mage::app()->getRequest()->getPost() ?: $this->sanitizeParams($_GET);
         /** @var Mage_Checkout_Model_Session $session */
         $session = Mage::getModel('checkout/session');
         $quote   = $session->getQuote();
@@ -283,7 +310,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      */
     public function updateShippingMethodsAction()
     {
-        $postData = Mage::app()->getRequest()->getPost() ?: $_GET;
+        $postData = Mage::app()->getRequest()->getPost() ?: $this->sanitizeParams($_GET);
         $wallet   = array();
         if ($postData['wallet']) {
             $wallet = $postData['wallet'];
