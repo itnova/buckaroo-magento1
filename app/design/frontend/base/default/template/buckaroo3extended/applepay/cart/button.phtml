@@ -18,7 +18,7 @@ $isConfigurable = $this->isConfigurable();
     /**
      * Only display real Apple Pay button if all attributes are configured.
      */
-    var elementsToValidate = jQuery('#apple-pay-disabled, li[id^="option"] span, li[id^="option"] img, [name^="options"]');
+    var elementsToValidate = jQuery('#apple-pay-disabled');
     
     elementsToValidate.on('click, mousedown, mouseup', function() {
         /**
