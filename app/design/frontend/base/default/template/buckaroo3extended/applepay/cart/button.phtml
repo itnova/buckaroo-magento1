@@ -18,19 +18,41 @@ $isConfigurable = $this->isConfigurable();
     /**
      * Only display real Apple Pay button if all attributes are configured.
      */
-    jQuery('#apple-pay-disabled').on('click', function() {
-        var self = this;
+    var elementsToValidate = jQuery('#apple-pay-disabled, li[id^="option"] span, li[id^="option"] img, [name^="options"]');
+    
+    elementsToValidate.on('click, mousedown, mouseup', function() {
+        /**
+         * Custom validation for Amac.
+         */
+        var cartButton = jQuery('button.button.btn-cart');
+        
+        if(cartButton.hasClass('disabled')) {
+            jQuery('.pdp-configurable-error').each(function () {
+                jQuery(this).removeClass('no-display');
+            });
+            
+            return;
+        } else {
+            jQuery('.pdp-configurable-error').each(function () {
+                jQuery(this).addClass('no-display');
+            });
+        }
+    
+        /**
+         * Validate Magento Configurable Product form.
+         */
+        var fakeButton = jQuery('#apple-pay-disabled');
+        var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
         
         jQuery('[name^="super_attribute"]').each(function() {
             var valid = Validation.validate(this);
-            var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
             
             applePay.show();
-            jQuery(self).hide();
+            jQuery(fakeButton).hide();
             
             if (valid === false) {
                 applePay.hide();
-                jQuery(self).show();
+                jQuery(fakeButton).show();
                 
                 return this;
             }
@@ -66,6 +88,8 @@ $isConfigurable = $this->isConfigurable();
                             jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper').show();
                             <?php endif; ?>
                             payment.showPayButton('black')
+                        } else {
+                            jQuery('#apple-pay-disabled').hide();
                         }
                     })
                 }
@@ -148,6 +172,10 @@ $isConfigurable = $this->isConfigurable();
                                         newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                         newLineItems: new ApplePay.prototype.processLineItems(dataArray)
                                 })
+                            },
+                            error: function(error) {
+                                /** Reload window to show error in Magento */
+                                window.location.reload();
                             }
                         }
                     );
@@ -252,7 +280,7 @@ $isConfigurable = $this->isConfigurable();
                                 label: shippingMethods[i].carrier_title,
                                 amount: shippingMethods[i].price.toString(),
                                 identifier: shippingMethods[i].code,
-                                detail: shippingMethods[i].method_description
+                                detail: shippingMethods[i].method_title
                         }
                     }
 
@@ -300,6 +328,10 @@ $isConfigurable = $this->isConfigurable();
                             },
                             success: function(response) {
                                 window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                            },
+                            error: function(error) {
+                                /** Reload window to show error in Magento */
+                                window.location.reload();
                             }
                         }
                     );
