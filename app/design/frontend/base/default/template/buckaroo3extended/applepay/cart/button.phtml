@@ -41,7 +41,6 @@ $isConfigurable = $this->isConfigurable();
         /**
          * Validate Magento Configurable Product form.
          */
-        var fakeButton = jQuery('#apple-pay-disabled');
         var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
         
         var attributes = jQuery('[name^="super_attribute"]');
@@ -55,14 +54,8 @@ $isConfigurable = $this->isConfigurable();
             }
             
             if (attributes.length === validated) {
-                fakeButton.hide();
-                applePay.show();
-                
-                return;
+                applePay.click();
             }
-            
-            fakeButton.show();
-            applePay.hide();
         })
     })
     <?php endif; ?>
