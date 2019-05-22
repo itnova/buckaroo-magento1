@@ -114,6 +114,12 @@
                                     results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
                                     results.shippingMethods, self.captureFunds, [], [], [], []
                                 )
+    
+                                /**
+                                 * Hooking into this event allows overriding the options with custom values.
+                                 */
+                                jQuery(document).trigger('buckaroo3extended_applepay_options', [ options ]);
+                                
                                 BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
                                     if(applePaySupported) {
                                         var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
