@@ -440,7 +440,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $checkoutSession = Mage::getModel('checkout/session');
         $quote           = $checkoutSession->getQuote();
         /** @var Mage_Checkout_Model_Type_Onepage $checkoutSingleton */
-        $checkoutSingleton = Mage::getSingleton('checkout/type_onepage');
+        $checkoutSingleton = Mage::getModel('checkout/type_onepage');
         $session           = $checkoutSingleton->getCheckout();
         $orderCollection   = Mage::getModel('sales/order')->getCollection();
         $orderCollection->getSelect()->order('entity_id DESC')->limit('1');
@@ -455,6 +455,8 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $session->setLastRealOrderId($incrementId);
         $session->setRedirectUrl('/checkout/onepage/success');
         
+        Mage::getSingleton('checkout/cart')->truncate()->save();
+    
         return $this->_redirect('checkout/onepage/success', array('_secure' => true));
     }
     
