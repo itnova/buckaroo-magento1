@@ -18,7 +18,7 @@ $isConfigurable = $this->isConfigurable();
     /**
      * Only display real Apple Pay button if all attributes are configured.
      */
-    var elementsToValidate = jQuery('#apple-pay-disabled, li[id^="option"] span, li[id^="option"] img, [name^="options"]');
+    var elementsToValidate = jQuery('#apple-pay-disabled');
     
     elementsToValidate.on('click, mousedown, mouseup', function() {
         /**
@@ -41,20 +41,20 @@ $isConfigurable = $this->isConfigurable();
         /**
          * Validate Magento Configurable Product form.
          */
-        var fakeButton = jQuery('#apple-pay-disabled');
         var applePay = jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper');
         
-        jQuery('[name^="super_attribute"]').each(function() {
+        var attributes = jQuery('[name^="super_attribute"]');
+        var validated  = 0;
+        
+        attributes.each(function() {
             var valid = Validation.validate(this);
             
-            applePay.show();
-            jQuery(fakeButton).hide();
+            if (valid === true) {
+                validated++;
+            }
             
-            if (valid === false) {
-                applePay.hide();
-                jQuery(fakeButton).show();
-                
-                return this;
+            if (attributes.length === validated) {
+                applePay.click();
             }
         })
     })
@@ -179,8 +179,12 @@ $isConfigurable = $this->isConfigurable();
                                 })
                             },
                             error: function(error) {
-                                /** Reload window to show error in Magento */
-                                window.location.reload();
+                                /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
+                                setTimeout(
+                                    function() {
+                                        window.location.reload();
+                                    }, 1500
+                                )
                             }
                         }
                     );
@@ -299,22 +303,27 @@ $isConfigurable = $this->isConfigurable();
                  * @returns {Promise<{errors: Array, status: *}>}
                  */
                 ApplePay.prototype.captureFunds = function(payment) {
-                    var authorizationResult = {
-                        status: ApplePaySession.STATUS_SUCCESS,
-                        errors: []
-                    }
-                    if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
-                        new ApplePay.prototype.placeOrder(payment)
-                    } else {
-                        var errors = authorizationResult.errors.map(function(error) {
-                            return error.message
-                        })
-                        this.showError('<?php echo $this->__('Your payment could not be processed: '); ?>' + errors.join(' '))
-                        authorizationResult.errors.forEach(function(error) {
-                            console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
-                        })
-                    }
-                    return Promise.resolve(authorizationResult)
+                    return new Promise(function(resolve) {
+                        var authorizationSuccessResult = {
+                            status: ApplePaySession.STATUS_SUCCESS,
+                            errors: []
+                        };
+                        
+                        var authorizationFailedResult = {
+                            status: ApplePaySession.STATUS_FAILURE,
+                            errors: []
+                        };
+                        
+                        var placeOrderRequest = ApplePay.prototype.placeOrder(payment);
+                        
+                        placeOrderRequest.success(function() {
+                            resolve(authorizationSuccessResult);
+                        });
+                        
+                        placeOrderRequest.error(function() {
+                            resolve(authorizationFailedResult)
+                        });
+                    })
                 }
 
                 /**
@@ -323,7 +332,7 @@ $isConfigurable = $this->isConfigurable();
                  * @param payment
                  */
                 ApplePay.prototype.placeOrder = function(payment) {
-                    jQuery.ajax(
+                    return jQuery.ajax(
                         {
                             url: '/buckaroo3extended/checkout/saveOrder',
                             method: 'post',
@@ -332,11 +341,20 @@ $isConfigurable = $this->isConfigurable();
                                 payment: payment
                             },
                             success: function(response) {
-                                window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                /** Set Timeout before redirecting to prevent Safari from crashing. */
+                                setTimeout(
+                                    function() {
+                                        window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                    }, 1500
+                                )
                             },
                             error: function(error) {
-                                /** Reload window to show error in Magento */
-                                window.location.reload();
+                                /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
+                                setTimeout(
+                                    function() {
+                                        window.location.reload();
+                                    }, 1500
+                                )
                             }
                         }
                     );
