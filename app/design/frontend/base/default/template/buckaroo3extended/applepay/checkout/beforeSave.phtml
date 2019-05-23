@@ -219,11 +219,11 @@
             
                         var placeOrderRequest = ApplePay.prototype.placeOrder(payment);
             
-                        placeOrderRequest.success(function() {
+                        placeOrderRequest.done(function() {
                             resolve(authorizationSuccessResult);
                         });
             
-                        placeOrderRequest.error(function() {
+                        placeOrderRequest.fail(function() {
                             resolve(authorizationFailedResult)
                         });
                     })
@@ -236,6 +236,16 @@
                  * @param payment
                  */
                 ApplePay.prototype.placeOrder = function(payment) {
+                    var jQver = '';
+    
+                    if (typeof jQuery !== undefined) {
+                        var jQver = jQuery.fn.jquery.split('.');
+                    }
+    
+                    if (jQver[0] === 3) {
+                        return this.placeOrderjQ3(payment);
+                    }
+                    
                     return jQuery.ajax(
                         {
                             url: '/buckaroo3extended/checkout/saveOrder',
@@ -264,6 +274,42 @@
                         }
                     );
                 }
+    
+                /**
+                 * Saves order to Magento and sends it to Buckaroo.
+                 *
+                 * @param payment
+                 */
+                ApplePay.prototype.placeOrderjQ3 = function(payment) {
+                    return jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/saveOrder',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                payment: payment,
+                                isCheckout: true
+                            },
+                            done: function(response) {
+                                /** Set Timeout before redirecting to prevent Safari from crashing. */
+                                setTimeout(
+                                    function() {
+                                        window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                    }, 1500
+                                )
+                            },
+                            fail: function(error) {
+                                /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
+                                setTimeout(
+                                    function() {
+                                        window.location.reload();
+                                    }, 1500
+                                )
+                            }
+                        }
+                    );
+                }
+                
                 return ApplePay
             }())
             Magento.ApplePay = ApplePay
