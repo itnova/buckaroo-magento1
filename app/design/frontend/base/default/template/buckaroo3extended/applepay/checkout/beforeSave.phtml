@@ -72,14 +72,6 @@
             var handler = new Buckaroo.Magento.ApplePay()
             handler.initialize()
         })()
-
-        /**
-         * When Apple Pay triggers a successful payment event, continue with normal
-         * execution.
-         */
-        jQuery(document).on('apple_pay_session_status_success', function() {
-            save()
-        })
     })
 
     var Buckaroo;
@@ -206,7 +198,7 @@
                         }
                     ]
                 }
-
+    
                 /**
                  * Callback function used for processing the payment and sending it to Buckaroo.
                  *
@@ -214,26 +206,64 @@
                  * @returns {Promise<{errors: Array, status: *}>}
                  */
                 ApplePay.prototype.captureFunds = function(payment) {
-                    var authorizationResult = {
-                        status: ApplePaySession.STATUS_SUCCESS,
-                        errors: []
-                    }
-                    if(authorizationResult.status === ApplePaySession.STATUS_SUCCESS) {
-                        var paymentToken = JSON.stringify(payment.token)
-                        jQuery('#apple-pay-response').val(paymentToken)
-                        jQuery(document).trigger('apple_pay_session_status_success')
-                    } else {
-                        var errors = authorizationResult.errors.map(function(error) {
-                            return error.message
-                        })
-                        this.showError('<?php echo $this->__('Your payment could not be processed: '); ?>' + errors.join(' '))
-                        authorizationResult.errors.forEach(function(error) {
-                            console.error(error.message + ' (' + error.contactField + ': ' + error.code + ').')
-                        })
-                    }
-                    return Promise.resolve(authorizationResult)
+                    return new Promise(function(resolve) {
+                        var authorizationSuccessResult = {
+                            status: ApplePaySession.STATUS_SUCCESS,
+                            errors: []
+                        };
+            
+                        var authorizationFailedResult = {
+                            status: ApplePaySession.STATUS_FAILURE,
+                            errors: []
+                        };
+            
+                        var placeOrderRequest = ApplePay.prototype.placeOrder(payment);
+            
+                        placeOrderRequest.success(function() {
+                            resolve(authorizationSuccessResult);
+                        });
+            
+                        placeOrderRequest.error(function() {
+                            resolve(authorizationFailedResult)
+                        });
+                    })
                 }
-
+    
+    
+                /**
+                 * Saves order to Magento and sends it to Buckaroo.
+                 *
+                 * @param payment
+                 */
+                ApplePay.prototype.placeOrder = function(payment) {
+                    return jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/saveOrder',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                payment: payment,
+                                isCheckout: true
+                            },
+                            success: function(response) {
+                                /** Set Timeout before redirecting to prevent Safari from crashing. */
+                                setTimeout(
+                                    function() {
+                                        window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                    }, 1500
+                                )
+                            },
+                            error: function(error) {
+                                /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
+                                setTimeout(
+                                    function() {
+                                        window.location.reload();
+                                    }, 1500
+                                )
+                            }
+                        }
+                    );
+                }
                 return ApplePay
             }())
             Magento.ApplePay = ApplePay

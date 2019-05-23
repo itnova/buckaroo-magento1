@@ -349,34 +349,34 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             return;
         }
         
-        $shippingData          = $postData['payment']['shippingContact'];
-        $walletShippingAddress = $this->processAddressFromWallet($shippingData, 'shipping');
-        
-        $billingData          = $postData['payment']['billingContact'];
-        $walletBillingAddress = $this->processAddressFromWallet($billingData, 'billing');
-        
-        /** @var Mage_Sales_Model_Quote_Address $shippingAddress */
-        $shippingAddress = $quote->getShippingAddress();
-        $shippingAddress->addData($walletShippingAddress);
-        /** @var Mage_Sales_Model_Quote_Address $billingAddress */
-        $billingAddress = $quote->getBillingAddress();
-        $billingAddress->addData($walletBillingAddress);
-        
-        $customer = $quote->getCustomer();
-        if (!$customer->getId()) {
-            $quote->setCheckoutMethod('guest')
-                  ->setCustomerId(null)
-                  ->setCustomerEmail($quote->getShippingAddress()->getEmail())
-                  ->setCustomerIsGuest(true)
-                  ->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
+        if (!$postData['isCheckout']) {
+            $shippingData          = $postData['payment']['shippingContact'];
+            $walletShippingAddress = $this->processAddressFromWallet($shippingData, 'shipping');
+    
+            $billingData          = $postData['payment']['billingContact'];
+            $walletBillingAddress = $this->processAddressFromWallet($billingData, 'billing');
+    
+            /** @var Mage_Sales_Model_Quote_Address $shippingAddress */
+            $shippingAddress = $quote->getShippingAddress();
+            $shippingAddress->addData($walletShippingAddress);
+            /** @var Mage_Sales_Model_Quote_Address $billingAddress */
+            $billingAddress = $quote->getBillingAddress();
+            $billingAddress->addData($walletBillingAddress);
+    
+            $customer = $quote->getCustomer();
+            if (!$customer->getId()) {
+                $quote->setCheckoutMethod('guest')
+                      ->setCustomerId(null)
+                      ->setCustomerEmail($quote->getShippingAddress()->getEmail())
+                      ->setCustomerIsGuest(true)
+                      ->setCustomerGroupId(Mage_Customer_Model_Group::NOT_LOGGED_IN_ID);
+            }
+    
+            $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
+            $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
+            $quote->collectTotals();
+            $quote->save();
         }
-        
-        $quote->getPayment()->importData(array('method' => 'buckaroo3extended_applepay'));
-        $quote->setCurrency(Mage::app()->getStore()->getBaseCurrencyCode());
-        $quote->collectTotals();
-        $quote->save();
-        
-        $error = null;
         
         try {
             /** @var Mage_Sales_Model_Service_Quote $service */
