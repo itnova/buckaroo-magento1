@@ -295,37 +295,7 @@ $isConfigurable = $this->isConfigurable();
 
                     return methods;
                 }
-
-                /**
-                 * Callback function used for processing the payment and sending it to Buckaroo.
-                 *
-                 * @param payment
-                 * @returns {Promise<{errors: Array, status: *}>}
-                 */
-                ApplePay.prototype.captureFunds = function(payment) {
-                    return new Promise(function(resolve) {
-                        var authorizationSuccessResult = {
-                            status: ApplePaySession.STATUS_SUCCESS,
-                            errors: []
-                        };
-                        
-                        var authorizationFailedResult = {
-                            status: ApplePaySession.STATUS_FAILURE,
-                            errors: []
-                        };
-                        
-                        var placeOrderRequest = ApplePay.prototype.placeOrder(payment);
-                        
-                        placeOrderRequest.success(function() {
-                            resolve(authorizationSuccessResult);
-                        });
-                        
-                        placeOrderRequest.error(function() {
-                            resolve(authorizationFailedResult)
-                        });
-                    })
-                }
-
+    
                 /**
                  * Saves order to Magento and sends it to Buckaroo.
                  *
@@ -358,6 +328,36 @@ $isConfigurable = $this->isConfigurable();
                             }
                         }
                     );
+                }
+
+                /**
+                 * Callback function used for processing the payment and sending it to Buckaroo.
+                 *
+                 * @param payment
+                 * @returns {Promise<{errors: Array, status: *}>}
+                 */
+                ApplePay.prototype.captureFunds = function(payment) {
+                    return new Promise(function(resolve) {
+                        var authorizationSuccessResult = {
+                            status: ApplePaySession.STATUS_SUCCESS,
+                            errors: []
+                        };
+                        
+                        var authorizationFailedResult = {
+                            status: ApplePaySession.STATUS_FAILURE,
+                            errors: []
+                        };
+                        
+                        var placeOrderRequest = new ApplePay.prototype.placeOrder(payment);
+                        
+                        placeOrderRequest.success(function() {
+                            resolve(authorizationSuccessResult);
+                        });
+                        
+                        placeOrderRequest.error(function() {
+                            resolve(authorizationFailedResult);
+                        });
+                    })
                 }
 
                 return ApplePay
