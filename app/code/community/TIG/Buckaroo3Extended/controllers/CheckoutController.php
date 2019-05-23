@@ -390,7 +390,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
             $request->sendRequest();
         } catch (Exception $e) {
             $session->addError($this->__('Order could not be submitted: ') . $e->getMessage());
-            throw new $e;
+            throw new Exception($e->getMessage());
         }
     }
     
