@@ -137,9 +137,6 @@ $isConfigurable = $this->isConfigurable();
                             context: this,
                             data: {
                                 method: method
-                            },
-                            success: function(response) {
-                                // Done!
                             }
                         }
                     );
@@ -151,6 +148,16 @@ $isConfigurable = $this->isConfigurable();
                  * Method = GET, since we need to send a serialized form if the product is configurable.
                  */
                 ApplePay.prototype.updateShippingContact = function(context) {
+                    var jQver = '';
+    
+                    if (typeof jQuery !== undefined) {
+                        var jQver = jQuery.fn.jquery.split('.');
+                    }
+    
+                    if (jQver[0] === 3) {
+                        return this.updateShippingContactjQ3(context);
+                    }
+                    
                     var options = jQuery('#product_addtocart_form').serializeArray()
                     
                     var update = jQuery.ajax(
@@ -189,6 +196,55 @@ $isConfigurable = $this->isConfigurable();
                         }
                     );
 
+                    return update;
+                }
+    
+                /**
+                 * Handles the changes within the pop-up when a different shipping address is selected.
+                 *
+                 * Method = GET, since we need to send a serialized form if the product is configurable.
+                 *
+                 * Duplicate method, compatible with jQuery 3.
+                 */
+                ApplePay.prototype.updateShippingContactjQ3 = function(context) {
+                    var options = jQuery('#product_addtocart_form').serializeArray()
+        
+                    var update = jQuery.ajax(
+                        {
+                            url: '<?php echo $this->getControllerUrl(); ?>',
+                            method: 'get',
+                            context: this,
+                            data: {
+                                wallet: context,
+                                product: {
+                                    id: '<?php echo $this->getProductId(); ?>',
+                                    qty: jQuery('.add-to-cart #qty').val(),
+                                    options: options
+                                }
+                            },
+                            dataType: 'json',
+                            async: false,
+                            dataFilter: function(data, type) {
+                                var dataArray = JSON.parse(data);
+                    
+                                return JSON.stringify({
+                                    errors: [],
+                                    newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray, false),
+                                    newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
+                                    newLineItems: new ApplePay.prototype.processLineItems(dataArray)
+                                })
+                            },
+                            fail: function(error) {
+                                /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
+                                setTimeout(
+                                    function() {
+                                        window.location.reload();
+                                    }, 1500
+                                )
+                            }
+                        }
+                    );
+        
                     return update;
                 }
 
@@ -297,11 +353,21 @@ $isConfigurable = $this->isConfigurable();
                 }
     
                 /**
-                 * Saves order to Magento and sends it to Buckaroo.
+                 * Saves order to Magento and sends it to Buckaroo. Checks for jQuery compatibility.
                  *
                  * @param payment
                  */
                 ApplePay.prototype.placeOrder = function(payment) {
+                    var jQver = '';
+                    
+                    if (typeof jQuery !== undefined) {
+                        var jQver = jQuery.fn.jquery.split('.');
+                    }
+                    
+                    if (jQver[0] === 3) {
+                        return this.placeOrderjQ3(payment);
+                    }
+                    
                     return jQuery.ajax(
                         {
                             url: '/buckaroo3extended/checkout/saveOrder',
@@ -319,6 +385,38 @@ $isConfigurable = $this->isConfigurable();
                                 )
                             },
                             error: function(error) {
+                                /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
+                                setTimeout(
+                                    function() {
+                                        window.location.reload();
+                                    }, 1500
+                                )
+                            }
+                        }
+                    );
+                }
+    
+                /**
+                 * Place Order method, compatible with jQuery 3.
+                 */
+                ApplePay.prototype.placeOrderjQ3 = function(payment) {
+                    return jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/saveOrder',
+                            method: 'post',
+                            context: this,
+                            data: {
+                                payment: payment
+                            },
+                            done: function(response) {
+                                /** Set Timeout before redirecting to prevent Safari from crashing. */
+                                setTimeout(
+                                    function() {
+                                        window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                    }, 1500
+                                )
+                            },
+                            fail: function(error) {
                                 /** Set Timeout to prevent Safari from crashing and reload window to show error in Magento. */
                                 setTimeout(
                                     function() {
@@ -350,11 +448,11 @@ $isConfigurable = $this->isConfigurable();
                         
                         var placeOrderRequest = new ApplePay.prototype.placeOrder(payment);
                         
-                        placeOrderRequest.success(function() {
+                        placeOrderRequest.done(function() {
                             resolve(authorizationSuccessResult);
                         });
                         
-                        placeOrderRequest.error(function() {
+                        placeOrderRequest.fail(function() {
                             resolve(authorizationFailedResult);
                         });
                     })
