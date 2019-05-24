@@ -13,6 +13,11 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
         parent::_construct();
     }
     
+    public function isLoggedIn()
+    {
+        return Mage::getSingleton('customer/session')->isLoggedIn();
+    }
+    
     /**
      * @return mixed
      */
