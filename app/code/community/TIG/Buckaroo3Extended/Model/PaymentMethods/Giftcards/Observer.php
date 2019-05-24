@@ -150,4 +150,46 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Giftcards_Observer extends TIG_
     }
 
 
+    /**
+     * @param Varien_Event_Observer $observer
+     *
+     * @return $this
+     */
+    public function buckaroo3extended_refund_request_addservices(Varien_Event_Observer $observer)
+    {
+        if ($this->_isChosenMethod($observer) === false) {
+            return $this;
+        }
+
+        $request = $observer->getRequest();
+        $this->_order = $request->getOrder();
+        $vars = $request->getVars();
+        $_method = $this->getMethod();
+
+
+        $array = array(
+            'action' => 'Refund',
+            'version' => 1
+        );
+
+        if (array_key_exists('services', $vars) && is_array($vars['services'][$_method])) {
+            $vars['services'][$_method] = array_merge($vars['services'][$_method], $array);
+        } else {
+            $vars['services'][$_method] = $array;
+        }
+
+        $request->setVars($vars);
+
+        return $this;
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     *
+     * @return $this
+     */
+    public function buckaroo3extended_refund_request_addcustomvars(Varien_Event_Observer $observer)
+    {
+        return $this;
+    }
 }

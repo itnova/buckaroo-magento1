@@ -9,6 +9,6 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Giftcards_PaymentMethod extends
 
     protected $_formBlockType = 'buckaroo3extended/paymentMethods_giftcards_checkout_form';
 
-    protected $_canRefund               = false;
-    protected $_canRefundInvoicePartial = false;
+    protected $_canRefund               = true;
+    protected $_canRefundInvoicePartial = true;
 }
