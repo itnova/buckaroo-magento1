@@ -8841,32 +8841,6 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </show_advanced>
-                        <payment_fee translate="label comment" module="buckaroo3extended">
-                            <label>Fee</label>
-                            <comment>The above amount is calculated based on de Tax settings in System > Configuration > Sales > Tax.</comment>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>90</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <validate>validate-not-negative-number</validate>
-                            <depends>
-                                <show_advanced>1</show_advanced>
-                            </depends>
-                        </payment_fee>
-                        <payment_fee_label translate="label comment" module="buckaroo3extended">
-                            <label>Fee label</label>
-                            <comment>This label will be displayed next to the fee on the checkout, order, invoice and creditmemo pages and pdfs.</comment>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>100</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <validate>required-entry</validate>
-                            <depends>
-                                <show_advanced>1</show_advanced>
-                            </depends>
-                        </payment_fee_label>
                         <active_status translate="label comment">
                             <label>Method specific status enabled</label>
                             <comment>Enable or disable specific status.</comment>
