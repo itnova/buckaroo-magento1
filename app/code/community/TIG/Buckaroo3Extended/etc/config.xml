@@ -394,6 +394,11 @@
                         <class>buckaroo3extended/paymentMethods_bancontactmrcash_observer</class>
                         <method>buckaroo3extended_refund_request_setmethod</method>
                     </buckaroo3extended_paymentmethod_observer_bancontactmrcash>
+                    <buckaroo3extended_paymentmethod_observer_giftcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_giftcards_observer</class>
+                        <method>buckaroo3extended_refund_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_giftcard>
                     <buckaroo3extended_paymentmethod_observer_klarna>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_klarna_observer</class>
@@ -600,7 +605,7 @@
                     </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_giftcard>
                         <type>Singleton</type>
-                        <class>buckaroo3extended/paymentMethods_giftcard_observer</class>
+                        <class>buckaroo3extended/paymentMethods_giftcards_observer</class>
                         <method>buckaroo3extended_refund_request_addservices</method>
                     </buckaroo3extended_paymentmethod_observer_giftcard>
                 </observers>
@@ -769,7 +774,7 @@
                     </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_giftcard>
                         <type>Singleton</type>
-                        <class>buckaroo3extended/paymentMethods_giftcard_observer</class>
+                        <class>buckaroo3extended/paymentMethods_giftcards_observer</class>
                         <method>buckaroo3extended_refund_request_addcustomvars</method>
                     </buckaroo3extended_paymentmethod_observer_giftcard>
                 </observers>

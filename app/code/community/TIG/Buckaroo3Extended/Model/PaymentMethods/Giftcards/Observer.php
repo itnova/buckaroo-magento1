@@ -114,6 +114,25 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Giftcards_Observer extends TIG_
         if (!empty($postData['brq_relatedtransaction_partialpayment'])) {
             $order = $observer->getOrder();
             if ($postData['brq_amount'] < $order->getGrandTotal()) {
+
+                // Add transaction to refundManager for managing partial refunds
+                // with different payment methods
+                $payment = $order->getPayment();
+                $transactions = $payment->getAdditionalInformation('transactions');
+
+                /** @var $refundManager TIG_Buckaroo3Extended_Model_Refundmanager */
+                $refundManager = Mage::getModel('buckaroo3extended/refundManager');
+                $refundManager->setTransactionArray($transactions);
+
+                $transactionKey = $postData['brq_transactions'];
+                $amount = $postData['brq_amount'];
+                $method = $postData['brq_transaction_method'];
+
+                $transactions = $refundManager->addTransaction('in', $transactionKey, $amount, $method);
+
+                $payment->setAdditionalInformation('transactions', $transactions);
+                $payment->save();
+
                 $order->setTransactionKey($postData['brq_relatedtransaction_partialpayment']);
 
                 $processingPaymentStatus  = Mage::getStoreConfig('buckaroo/buckaroo3extended_giftcards/order_status_giftcard', $order->getStoreId());
@@ -149,6 +168,20 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Giftcards_Observer extends TIG_
         }
     }
 
+    public function buckaroo3extended_refund_request_setmethod(Varien_Event_Observer $observer)
+    {
+        if($this->_isChosenMethod($observer) === false) {
+            return $this;
+        }
+
+        $request = $observer->getRequest();
+
+        $codeBits = explode('_', $this->_code);
+        $code = end($codeBits);
+        $request->setMethod($code);
+
+        return $this;
+    }
 
     /**
      * @param Varien_Event_Observer $observer
@@ -192,4 +225,5 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Giftcards_Observer extends TIG_
     {
         return $this;
     }
+
 }

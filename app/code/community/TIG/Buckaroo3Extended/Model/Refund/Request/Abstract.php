@@ -4,6 +4,10 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
     protected $_payment;
     protected $_invoice;
     protected $_amount;
+    /**
+     * @var
+     */
+    protected $_giftcardPartialRefund;
 
     public function setPayment($payment)
     {
@@ -82,6 +86,55 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
 
     public function sendRefundRequest()
     {
+        //RefundManager for giftcards multiple partial refunds
+        if ($this->getMethod() == 'giftcards') {
+
+            $transactions = $this->_payment->getAdditionalInformation('transactions');
+
+            /** @var $refundManager TIG_Buckaroo3Extended_Model_Refundmanager */
+            $refundManager = Mage::getModel('buckaroo3extended/refundManager');
+            $refundManager->setTransactionArray($transactions);
+
+            if ($refundManager->getPossibleRefundAmount() <= 0.00){
+                //error
+                Mage::throwException(Mage::helper('buckaroo3extended')->__("Refund amount not enough. Try refund offline and via Buckaroo plaza."));
+            }
+
+            $calculatedTransactions = $refundManager->refundTransaction($this->getAmount());
+
+            foreach ($calculatedTransactions as $transactionkey => $transactionAmount ) {
+
+                try {
+                    $type = $refundManager->transactionArray['transaction'][$transactionkey]['type'];
+                    $this->_giftcardPartialRefund = [
+                        'method' => $type,
+                        'amountCredit' => $transactionAmount,
+                        'OriginalTransactionKey' => $transactionkey
+                    ];
+
+                    //actual refund request
+                    $this->_sendRefundRequest();
+
+                    //register transaction
+                    $refundManager->addTransaction('out', $transactionkey, $transactionAmount);
+
+
+                } catch (Exception $e) {
+                    Mage::helper('buckaroo3extended')->logException($e);
+                    Mage::throwException($e->getMessage());
+                    $refundManager->addHistory($transactionkey, $transactionAmount, $type, 'FAILED');
+                }
+
+                $refundManager->addHistory($transactionkey, $transactionAmount, $type, 'OK');
+                $this->_payment->setAdditionalInformation('transactions', $refundManager->getTransactionArray());
+                $this->_payment->save();
+            }
+
+            return $this;
+        }
+
+
+
         try {
             return $this->_sendRefundRequest();
         } catch (Exception $e) {
@@ -106,7 +159,7 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
         return $this->_order->getTransactionKey();
     }
 
-    protected function _sendRefundRequest()
+    protected function _sendRefundRequest($overwriteVariables = [])
     {
         $this->_debugEmail .= 'Chosen payment method: ' . $this->_method . "\n";
 
@@ -130,6 +183,8 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
         Mage::dispatchEvent('buckaroo3extended_refund_request_addservices', array('request' => $this, 'order' => $this->_order));
         Mage::dispatchEvent('buckaroo3extended_refund_request_addcustomvars', array('request' => $this, 'order' => $this->_order, 'payment' => $this->_payment));
 
+        $this->_giftcardPartialRefund();
+
         $this->_debugEmail .= "Events fired! \n";
 
         //clean the array for a soap request
@@ -137,8 +192,6 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
 
         $this->_debugEmail .= "Variable array:" . var_export($this->_vars, true) . "\n\n";
         $this->_debugEmail .= "Building SOAP request... \n";
-
-        //send the transaction request using SOAP
 
         /** @var $soap TIG_Buckaroo3Extended_Model_Soap */
         $soap = Mage::getModel('buckaroo3extended/soap', array('vars' => $this->getVars(), 'method' => $this->getMethod()));
@@ -193,6 +246,33 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
         $this->_vars['orderId']      = $this->_order->getIncrementId();
 
         $this->_debugEmail .= 'Order variables added! \n';
+    }
+
+    /**
+     * Overwrite xml vars for giftcard partial refunds (consists of different paymentmethods)
+     */
+    protected function _giftcardPartialRefund()
+    {
+        if (is_array($this->_giftcardPartialRefund)) {
+            $this->_vars['amountCredit'] = $this->_giftcardPartialRefund['amountCredit'];
+            $this->_vars['OriginalTransactionKey'] = $this->_giftcardPartialRefund['OriginalTransactionKey'];
+
+            //reset service to payment method (not giftcards but fashioncheque or ideal etc.)
+            $this->_vars['services'] = [
+                $this->_giftcardPartialRefund['method'] => ['action' => "Refund",
+                                                            'version' => 1]
+            ];
+
+            //fashioncheque set channel to BackOffice
+            if ($this->_giftcardPartialRefund['method'] == 'fashioncheque') {
+                $this->_vars['channel']  = 'BackOffice';
+
+                //reset request without version
+                $this->_vars['services'] = ['fashioncheque' => ['action' => 'Refund',
+                                                                'version' => 2]
+                ];
+            }
+        }
     }
 
     protected function _determinRefundAmountAndCurrency()

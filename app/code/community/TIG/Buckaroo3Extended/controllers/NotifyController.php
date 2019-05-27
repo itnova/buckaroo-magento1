@@ -154,7 +154,10 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
                 ->load($this->_postArray['brq_relatedtransaction_refund'], 'transaction_id');
         }
 
-        if (null !== $invoice && $invoice->getOrderIncrementId() != $this->_postArray['brq_invoicenumber']) {
+        if (null !== $invoice &&
+            count($invoice->getData()) > 0 &&
+            $invoice->getOrderIncrementId() != $this->_postArray['brq_invoicenumber']
+        ) {
             $orderId = $invoice->getOrderIncrementId();
         }
 
@@ -557,6 +560,34 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
 
         try {
             $processedPush = $module->processBuckarooRefundPush();
+
+            // Add refund transaction to refundManager for managing partial refunds
+            // with different payment methods
+            $postData = $this->_postArray;
+            if (!empty($postData['brq_relatedtransaction_refund'])) {
+                $order = $this->_order;
+                if ($postData['brq_amount_credit'] > 0 &&
+                    $postData['brq_statuscode'] == 190
+                ) {
+
+                    $payment = $order->getPayment();
+                    $transactions = $payment->getAdditionalInformation('transactions');
+
+                    /** @var $refundManager TIG_Buckaroo3Extended_Model_Refundmanager */
+                    $refundManager = Mage::getModel('buckaroo3extended/refundManager');
+                    $refundManager->setTransactionArray($transactions);
+
+                    $transactionKey = $postData['brq_transactions'];
+                    $transactionAmount = $postData['brq_amount_credit'];
+                    $method = $postData['brq_transaction_method'];
+
+                    $transactions = $refundManager->addTransaction('out', $transactionKey, $transactionAmount);
+                    $refundManager->addHistory($transactionKey, $transactionAmount, $method, 'OK');
+
+                    $payment->setAdditionalInformation('transactions', $transactions);
+                    $payment->save();
+                }
+            }
         } catch (Exception $e) {
             Mage::logException($e);
             return array(false, $module);
