@@ -88,7 +88,6 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_Process extends TIG_Bu
         $totals = array(
             'subTotal'   => $quoteTotals['subtotal']->getValue(),
             'shipping'   => $address->getData('shipping_incl_tax'),
-            'paymentFee' => $this->calculateBuckarooFee($address),
             'grandTotal' => $quoteTotals['grand_total']->getValue()
         );
         

@@ -284,9 +284,8 @@ $isConfigurable = $this->isConfigurable();
                 ApplePay.prototype.processLineItems = function(data) {
                     if (data === null || data === undefined || data.length < 1) {
                         return [
-                            {label: '<?php echo $this->getSubtotalText(); ?>', amount: '0.00', type: 'final'},
-                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: '0.00', type: 'final'},
-                            {label: '<?php echo $this->__('Payment fee'); ?>', amount: '0.00', type: 'final'}
+                            {label: '<?php echo $this->getSubtotalText(); ?>', amount: '0.00', type: 'pending'},
+                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: '0.00', type: 'pending'}
                         ]
                     }
 
@@ -297,8 +296,7 @@ $isConfigurable = $this->isConfigurable();
 
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'},
-                        {label: '<?php echo $this->__('Payment fee'); ?>', amount: payment.toFixed(2), type: 'final'}
+                        {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'}
                     ]
                 }
 
@@ -313,7 +311,7 @@ $isConfigurable = $this->isConfigurable();
                         return {
                             label: '<?php echo $this->getStoreName(); ?>',
                             amount: '0.00',
-                            type: 'final'
+                            type: 'pending'
                         }
                     }
 

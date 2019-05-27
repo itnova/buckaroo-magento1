@@ -79,16 +79,6 @@ class TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Cart_Button
         
         return round($cart->getQuote()->getSubtotalWithDiscount(), 2);
     }
-
-    /**
-     * @return float
-     * @throws Mage_Core_Model_Store_Exception
-     */
-    public function getPaymentFee()
-    {
-        $storeId = Mage::app()->getStore()->getId();
-        return round(Mage::getStoreConfig('buckaroo/buckaroo3extended_applepay/payment_fee', $storeId), 2);
-    }
     
     /**
      * @return float
