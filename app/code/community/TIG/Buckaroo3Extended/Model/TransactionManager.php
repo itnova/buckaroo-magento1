@@ -113,14 +113,14 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
     }
 
     /**
-     * @param $transactionkey
+     * @param $transactionKey
      * @param $amount
      * @param $type
      * @param $status
      */
-    public function addHistory($transactionkey, $amount, $type, $status)
+    public function addHistory($transactionKey, $amount, $type, $status)
     {
-        $this->transactionArray['history'][] = ['transactionkey' => $transactionkey,
+        $this->transactionArray['history'][] = ['transaction_key' => $transactionKey,
             'refund_amount' => $amount,
             'type' => $type,
             'status' => $status];
@@ -162,20 +162,20 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
     }
 
     /**
-     * @param $transactionkey
+     * @param $transactionKey
      * @param $amount
      * @param null $type
      * @return array
      */
-    public function addDebitTransaction($transactionkey, $amount, $type = null)
+    public function addDebitTransaction($transactionKey, $amount, $type = null)
     {
         $amount = round($amount,2);
 
         if ($type) {
-            $this->transactionArray['transaction'][$transactionkey]['type'] = $type;
+            $this->transactionArray['transaction'][$transactionKey]['type'] = $type;
         }
 
-        $this->transactionArray['transaction'][$transactionkey]['amount'] = $amount;
+        $this->transactionArray['transaction'][$transactionKey]['amount'] = $amount;
 
         $this->transactionArray['total_debit'] += $amount;
 
@@ -183,24 +183,24 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
     }
 
     /**
-     * @param $transactionkey
+     * @param $transactionKey
      * @param $amount
      * @param null $type
      * @return array
      */
-    public function addCreditTransaction($transactionkey, $amount, $type = null)
+    public function addCreditTransaction($transactionKey, $amount, $type = null)
     {
         $amount = round($amount,2);
 
         if ($type) {
-            $this->transactionArray['transaction'][$transactionkey]['type'] = $type;
+            $this->transactionArray['transaction'][$transactionKey]['type'] = $type;
         }
 
-        if (!isset($this->transactionArray['transaction'][$transactionkey]['refunded'])) {
-            $this->transactionArray['transaction'][$transactionkey]['refunded'] = $amount;
+        if (!isset($this->transactionArray['transaction'][$transactionKey]['refunded'])) {
+            $this->transactionArray['transaction'][$transactionKey]['refunded'] = $amount;
         }
         else {
-            $this->transactionArray['transaction'][$transactionkey]['refunded'] += $amount;
+            $this->transactionArray['transaction'][$transactionKey]['refunded'] += $amount;
         }
 
         $this->transactionArray['total_credit'] += $amount;

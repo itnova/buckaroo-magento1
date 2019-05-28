@@ -130,7 +130,8 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
         foreach ($calculatedTransactions as $transactionKey => $transactionAmount) {
 
             try {
-                $type = $transactionManager->transactionArray['transaction'][$transactionKey]['type'];
+                $transactionArray = $transactionManager->getTransactionArray();
+                $type = $transactionArray['transaction'][$transactionKey]['type'];
                 $this->_giftcardPartialRefund = [
                     'method' => $type,
                     'amountCredit' => $transactionAmount,

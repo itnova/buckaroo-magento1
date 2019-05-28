@@ -593,14 +593,14 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
             $transactionManager = Mage::getModel('buckaroo3extended/transactionManager');
             $transactionManager->setTransactionArray($transactions);
 
-            $transactionKey = $this->_postArray['brq_transactions'];
+            $transactionKey = $this->_postArray['brq_relatedtransaction_refund'];
             $transactionAmount = $this->_postArray['brq_amount_credit'];
             $method = $this->_postArray['brq_transaction_method'];
 
-            $transactions = $transactionManager->addCreditTransaction($transactionKey, $transactionAmount);
+            $transactionManager->addCreditTransaction($transactionKey, $transactionAmount);
             $transactionManager->addHistory($transactionKey, $transactionAmount, $method, 'OK');
 
-            $payment->setAdditionalInformation('transactions', $transactions);
+            $payment->setAdditionalInformation('transactions', $transactionManager->getTransactionArray());
             $payment->save();
         }
     }
