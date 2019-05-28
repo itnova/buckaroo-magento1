@@ -396,7 +396,7 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
             && (
                 isset($this->_postArray['brq_websitekey'])
                 && $merchantKey == $this->_postArray['brq_websitekey']
-               )
+            )
         ) {
             list($processedPush, $module) = $this->_updateOrderWithKey();
             return array($module, $processedPush);
@@ -491,7 +491,7 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
         $this->_debugEmail .= "Order does not yet have a transaction key and the PUSH does not constitute a refund. \n";
 
         $this->_order->setTransactionKey($this->_postArray['brq_transactions'])
-              ->save();
+            ->save();
 
         $this->_debugEmail .= "Transaction key saved: {$this->_postArray['brq_transactions']}";
 
@@ -536,6 +536,9 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
         return array(true, $module);
     }
 
+    /**
+     * @return array
+     */
     protected function _newRefund()
     {
         $this->_debugEmail .= "The PUSH constitutes a new refund. \n";
@@ -561,32 +564,8 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
         try {
             $processedPush = $module->processBuckarooRefundPush();
 
-            // Add refund transaction to refundManager for managing partial refunds
-            // with different payment methods
-            $postData = $this->_postArray;
-            if (!empty($postData['brq_relatedtransaction_refund'])) {
-                $order = $this->_order;
-                if ($postData['brq_amount_credit'] > 0 &&
-                    $postData['brq_statuscode'] == 190
-                ) {
-
-                    $payment = $order->getPayment();
-                    $transactions = $payment->getAdditionalInformation('transactions');
-
-                    /** @var $refundManager TIG_Buckaroo3Extended_Model_Refundmanager */
-                    $refundManager = Mage::getModel('buckaroo3extended/refundManager');
-                    $refundManager->setTransactionArray($transactions);
-
-                    $transactionKey = $postData['brq_transactions'];
-                    $transactionAmount = $postData['brq_amount_credit'];
-                    $method = $postData['brq_transaction_method'];
-
-                    $transactions = $refundManager->addTransaction('out', $transactionKey, $transactionAmount);
-                    $refundManager->addHistory($transactionKey, $transactionAmount, $method, 'OK');
-
-                    $payment->setAdditionalInformation('transactions', $transactions);
-                    $payment->save();
-                }
+            if (!empty($this->_postArray['brq_relatedtransaction_refund'])) {
+                $this->_addCreditTransaction();
             }
         } catch (Exception $e) {
             Mage::logException($e);
@@ -594,6 +573,36 @@ class TIG_Buckaroo3Extended_NotifyController extends Mage_Core_Controller_Front_
         }
 
         return array($processedPush, $module);
+    }
+
+    /**
+     * Add credit transaction
+     * Add refund transaction to transactionManager for managing partial refunds
+     * with different payment methods
+     */
+    protected function _addCreditTransaction()
+    {
+        if ($this->_postArray['brq_amount_credit'] > 0 &&
+            $this->_postArray['brq_statuscode'] == 190
+        ) {
+
+            $payment =  $this->_order->getPayment();
+            $transactions = $payment->getAdditionalInformation('transactions');
+
+            /** @var $transactionManager TIG_Buckaroo3Extended_Model_TransactionManager */
+            $transactionManager = Mage::getModel('buckaroo3extended/transactionManager');
+            $transactionManager->setTransactionArray($transactions);
+
+            $transactionKey = $this->_postArray['brq_transactions'];
+            $transactionAmount = $this->_postArray['brq_amount_credit'];
+            $method = $this->_postArray['brq_transaction_method'];
+
+            $transactions = $transactionManager->addCreditTransaction($transactionKey, $transactionAmount);
+            $transactionManager->addHistory($transactionKey, $transactionAmount, $method, 'OK');
+
+            $payment->setAdditionalInformation('transactions', $transactions);
+            $payment->save();
+        }
     }
 
     protected function _updateOrderWithoutMatchingKey()

@@ -115,20 +115,20 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Giftcards_Observer extends TIG_
             $order = $observer->getOrder();
             if ($postData['brq_amount'] < $order->getGrandTotal()) {
 
-                // Add transaction to refundManager for managing partial refunds
+                // Add transaction to transactionManager for managing partial refunds
                 // with different payment methods
                 $payment = $order->getPayment();
                 $transactions = $payment->getAdditionalInformation('transactions');
 
-                /** @var $refundManager TIG_Buckaroo3Extended_Model_Refundmanager */
-                $refundManager = Mage::getModel('buckaroo3extended/refundManager');
-                $refundManager->setTransactionArray($transactions);
+                /** @var $transactionManager TIG_Buckaroo3Extended_Model_TransactionManager */
+                $transactionManager = Mage::getModel('buckaroo3extended/transactionManager');
+                $transactionManager->setTransactionArray($transactions);
 
                 $transactionKey = $postData['brq_transactions'];
                 $amount = $postData['brq_amount'];
                 $method = $postData['brq_transaction_method'];
 
-                $transactions = $refundManager->addTransaction('in', $transactionKey, $amount, $method);
+                $transactions = $transactionManager->addDebitTransaction($transactionKey, $amount, $method);
 
                 $payment->setAdditionalInformation('transactions', $transactions);
                 $payment->save();

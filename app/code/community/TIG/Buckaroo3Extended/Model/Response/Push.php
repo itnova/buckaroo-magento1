@@ -96,20 +96,20 @@ class TIG_Buckaroo3Extended_Model_Response_Push extends TIG_Buckaroo3Extended_Mo
         } elseif ($canProcess && !$canUpdate) {
 
             // related transactions can be blocked when group transaction is sent.
-            // still add transaction to refundManager
+            // still add transaction to transactionManager
             if (isset($this->_postArray['brq_relatedtransaction_partialpayment'])) {
                 $payment = $this->_order->getPayment();
                 $transactions = $payment->getAdditionalInformation('transactions');
 
-                /** @var $refundManager TIG_Buckaroo3Extended_Model_Refundmanager */
-                $refundManager = Mage::getModel('buckaroo3extended/refundManager');
-                $refundManager->setTransactionArray($transactions);
+                /** @var $transactionManager TIG_Buckaroo3Extended_Model_TransactionManager */
+                $transactionManager = Mage::getModel('buckaroo3extended/transactionManager');
+                $transactionManager->setTransactionArray($transactions);
 
                 $transactionKey = $this->_postArray['brq_transactions'];
                 $amount = $this->_postArray['brq_amount'];
                 $method = $this->_postArray['brq_transaction_method'];
 
-                $transactions = $refundManager->addTransaction('in', $transactionKey, $amount, $method);
+                $transactions = $transactionManager->addDebitTransaction($transactionKey, $amount, $method);
 
                 $payment->setAdditionalInformation('transactions', $transactions);
                 $payment->save();
