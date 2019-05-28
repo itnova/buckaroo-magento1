@@ -81,8 +81,8 @@ $isConfigurable = $this->isConfigurable();
                     requiredShippingFields = ["name", "phone", "postalAddress"]
                     requiredBillingFields = ["name", "postalAddress"]
                     <?php endif; ?>
-        
-                    var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
+                    
+                    var options = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
                         optionsArray.merchantIdentifier, optionsArray.lineItems, optionsArray.totalLineItems, optionsArray.shippingType,
                         optionsArray.shippingMethods, this.captureFunds, this.updateShippingMethod, this.updateShippingContact,
@@ -122,7 +122,7 @@ $isConfigurable = $this->isConfigurable();
                             async: false,
                             dataFilter: function(data, type) {
                                 var dataArray = JSON.parse(data);
-                                
+
                                 return JSON.stringify({
                                     newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                     newLineItems: new ApplePay.prototype.processLineItems(dataArray)
@@ -185,7 +185,7 @@ $isConfigurable = $this->isConfigurable();
                             async: false,
                             dataFilter: function(data, type) {
                                 var dataArray = JSON.parse(data);
-                                
+
                                 return JSON.stringify({
                                         errors: [],
                                         newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray, false),
@@ -294,8 +294,6 @@ $isConfigurable = $this->isConfigurable();
                         var price = parseFloat(data['shipping'])
                     }
                     
-                    var payment = parseFloat(data['paymentFee'])
-                    
                     if(data['discount'] == null) {
                         return [
                             {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
@@ -343,8 +341,8 @@ $isConfigurable = $this->isConfigurable();
                     var methods = [];
                     
                     if (onPageLoad === false && shippingMethods[0] === undefined) {
-                        /** An error is thrown and displayed in the cart, if no shipping methods are available. */
-                        window.location.href = "/checkout/cart";
+                        /** If no shipment methods are found, reload the page and display an error. */
+                        window.location.reload();
                         
                         return methods;
                     }
