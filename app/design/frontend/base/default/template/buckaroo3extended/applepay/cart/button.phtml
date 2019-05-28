@@ -81,7 +81,7 @@ $isConfigurable = $this->isConfigurable();
                     requiredShippingFields = ["name", "phone", "postalAddress"]
                     requiredBillingFields = ["name", "postalAddress"]
                     <?php endif; ?>
-                    
+        
                     var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
                         optionsArray.merchantIdentifier, optionsArray.lineItems, optionsArray.totalLineItems, optionsArray.shippingType,
@@ -122,7 +122,7 @@ $isConfigurable = $this->isConfigurable();
                             async: false,
                             dataFilter: function(data, type) {
                                 var dataArray = JSON.parse(data);
-
+                                
                                 return JSON.stringify({
                                     newTotal: new ApplePay.prototype.processTotalLineItems(dataArray),
                                     newLineItems: new ApplePay.prototype.processLineItems(dataArray)
@@ -185,7 +185,7 @@ $isConfigurable = $this->isConfigurable();
                             async: false,
                             dataFilter: function(data, type) {
                                 var dataArray = JSON.parse(data);
-
+                                
                                 return JSON.stringify({
                                         errors: [],
                                         newShippingMethods: new ApplePay.prototype.createShippingMethodInformation(dataArray, false),
@@ -285,18 +285,28 @@ $isConfigurable = $this->isConfigurable();
                     if (data === null || data === undefined || data.length < 1) {
                         return [
                             {label: '<?php echo $this->getSubtotalText(); ?>', amount: '0.00', type: 'pending'},
-                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: '0.00', type: 'pending'}
+                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: '0.00', type: 'pending'},
+                            {label: '<?php echo $this->__('Discount'); ?>', amount: '0.00', type: 'pending'}
                         ]
                     }
 
                     if (typeof data['shipping'] !== 'undefined') {
                         var price = parseFloat(data['shipping'])
                     }
+                    
                     var payment = parseFloat(data['paymentFee'])
+                    
+                    if(data['discount'] == null) {
+                        return [
+                            {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
+                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'}
+                        ]
+                    }
 
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'}
+                        {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'},
+                        {label: '<?php echo $this->__('Discount'); ?>', amount: parseFloat(data['discount']).toFixed(2), type: 'final'}
                     ]
                 }
 
