@@ -23,14 +23,17 @@
 <script>
     /**
      * Hide modal + shadow overlay when clicked away.
-     * */
-
+     */
     jQuery(document).ready(function(){
         jQuery('.buckaroo-apple-pay-shadow, .close-apple-pay, .apple-pay').click(function(){
             jQuery('#buckaroo-apple-pay-popup, .buckaroo-apple-pay-shadow').hide();
         });
     });
 
+    /**
+     * Display an alert if Apple Pay is selected as payment method, but it's not available on the device.
+     * Otherwise, continue with the checkout process.
+     */
     Payment.prototype.save = Payment.prototype.save.wrap(function(save) {
         if ((!("ApplePaySession" in window) || typeof ApplePaySession === 'undefined') && payment.currentMethod === 'buckaroo3extended_applepay') {
             alert('<?php echo $this->__('Apple Pay is not available on this device. Please select a different payment method.'); ?>');
@@ -79,14 +82,8 @@
         var Magento;
         (function(Magento) {
             var ApplePay = (function() {
-                /**
-                 * This is triggered first and can be used to update the Apple Pay pop-up with information from within
-                 * the wallet, or from within Magento, before it is displayed.
-                 */
                 function ApplePay() {
-                    this.updatePanel = function(panel, contact) {
-                        // Do something.
-                    }
+                
                 }
 
                 /**
@@ -144,7 +141,6 @@
                         totalLineItems: this.processTotalLineItems(response),
                         shippingType: 'shipping',
                         shippingMethods: []
-                        // shippingMethods: this.createShippingMethodInformation(response)
                     }
                 }
 
@@ -157,7 +153,6 @@
                 ApplePay.prototype.processLineItems = function(response) {
                     var subTotal = parseFloat(response.calculated_subtotal).toFixed(2)
                     var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
-                    var payment = parseFloat(response.payment_fee).toFixed(2)
 
                     return [
                         {label: '<?php echo $this->__('Subtotal'); ?>', amount: subTotal, type: 'final'},
