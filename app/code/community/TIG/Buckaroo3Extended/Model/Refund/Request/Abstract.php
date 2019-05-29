@@ -127,6 +127,8 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
                 ->__("Cannot calculate how to do this refund. Try refund offline and via Buckaroo plaza."));
         }
 
+        $successfulTransactions = 0;
+
         foreach ($calculatedTransactions as $transactionKey => $transactionAmount) {
 
             try {
@@ -147,13 +149,26 @@ class TIG_Buckaroo3Extended_Model_Refund_Request_Abstract extends TIG_Buckaroo3E
 
             } catch (Exception $e) {
                 Mage::helper('buckaroo3extended')->logException($e);
+
+                if ($successfulTransactions > 0) {
+                    $refundInvoiceId = (isset($this->getVars()['invoiceId'])) ? $this->getVars()['invoiceId'] : '';
+                    Mage::throwException(Mage::helper('buckaroo3extended')
+                        ->__("The Credit Memo was not created: a refund could not be made for some partial " .
+                             "transactions. Check in the <a href='%s' target='_blank'>Buckaroo Plaza</a> " .
+                             "which refunds were successful. If necessary, create an offline Credit Memo " .
+                             "for the amount that has been refunded to match your administration.",
+                             "https://plaza.buckaroo.nl/Transaction/Search?searchParameter=" . $refundInvoiceId)
+                    );
+                }
+
                 Mage::throwException($e->getMessage());
-                $transactionManager->addHistory($transactionKey, $transactionAmount, $type, 'FAILED');
             }
 
             $transactionManager->addHistory($transactionKey, $transactionAmount, $type, 'OK');
             $this->_payment->setAdditionalInformation('transactions', $transactionManager->getTransactionArray());
             $this->_payment->save();
+
+            $successfulTransactions++;
         }
 
         return $this;
