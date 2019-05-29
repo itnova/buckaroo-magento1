@@ -421,3 +421,4 @@ TIG_Buckaroo3Extended::Fee label, Betaaltoeslag label
 "TIG_Buckaroo3Extended::subTotal","Subtotaal"
 "TIG_Buckaroo3Extended::Delivery costs","Verzendkosten"
 "TIG_Buckaroo3Extended::Payment fee","Betaaltoeslag"
+"TIG_Buckaroo3Extended::Discount","Korting"

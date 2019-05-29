@@ -69,6 +69,7 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         $shippingData['guid']                = $guid;
         $shippingData['store_name']          = $storeName;
         $shippingData['calculated_subtotal'] = $shippingData['subtotal_incl_tax'];
+        $shippingData['discount']            = isset($shippingData['discount_amount']) ? $shippingData['discount_amount'] : null;
         
         if (count($address->getAppliedTaxes()) == 0) {
             $shippingData['calculated_subtotal'] = $shippingData['subtotal'];

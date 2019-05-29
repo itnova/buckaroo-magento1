@@ -82,7 +82,7 @@ $isConfigurable = $this->isConfigurable();
                     requiredBillingFields = ["name", "postalAddress"]
                     <?php endif; ?>
                     
-                    var options      = new BuckarooSdk.ApplePay.ApplePayOptions(
+                    var options = new BuckarooSdk.ApplePay.ApplePayOptions(
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
                         optionsArray.merchantIdentifier, optionsArray.lineItems, optionsArray.totalLineItems, optionsArray.shippingType,
                         optionsArray.shippingMethods, this.captureFunds, this.updateShippingMethod, this.updateShippingContact,
@@ -285,18 +285,26 @@ $isConfigurable = $this->isConfigurable();
                     if (data === null || data === undefined || data.length < 1) {
                         return [
                             {label: '<?php echo $this->getSubtotalText(); ?>', amount: '0.00', type: 'pending'},
-                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: '0.00', type: 'pending'}
+                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: '0.00', type: 'pending'},
+                            {label: '<?php echo $this->__('Discount'); ?>', amount: '0.00', type: 'pending'}
                         ]
                     }
 
                     if (typeof data['shipping'] !== 'undefined') {
                         var price = parseFloat(data['shipping'])
                     }
-                    var payment = parseFloat(data['paymentFee'])
+                    
+                    if(data['discount'] == null) {
+                        return [
+                            {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
+                            {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'}
+                        ]
+                    }
 
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
-                        {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'}
+                        {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'},
+                        {label: '<?php echo $this->__('Discount'); ?>', amount: parseFloat(data['discount']).toFixed(2), type: 'final'}
                     ]
                 }
 
@@ -333,8 +341,8 @@ $isConfigurable = $this->isConfigurable();
                     var methods = [];
                     
                     if (onPageLoad === false && shippingMethods[0] === undefined) {
-                        /** An error is thrown and displayed in the cart, if no shipping methods are available. */
-                        window.location.href = "/checkout/cart";
+                        /** If no shipment methods are found, reload the page and display an error. */
+                        window.location.reload();
                         
                         return methods;
                     }
