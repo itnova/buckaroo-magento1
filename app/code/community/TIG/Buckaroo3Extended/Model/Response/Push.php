@@ -94,6 +94,27 @@ class TIG_Buckaroo3Extended_Model_Response_Push extends TIG_Buckaroo3Extended_Mo
         if (!$canProcess) {
             return false;
         } elseif ($canProcess && !$canUpdate) {
+
+            // related transactions can be blocked when group transaction is sent.
+            // still add transaction to transactionManager
+            if (isset($this->_postArray['brq_relatedtransaction_partialpayment'])) {
+                $payment = $this->_order->getPayment();
+                $transactions = $payment->getAdditionalInformation('transactions');
+
+                /** @var $transactionManager TIG_Buckaroo3Extended_Model_TransactionManager */
+                $transactionManager = Mage::getModel('buckaroo3extended/transactionManager');
+                $transactionManager->setTransactionArray($transactions);
+
+                $transactionKey = $this->_postArray['brq_transactions'];
+                $amount = $this->_postArray['brq_amount'];
+                $method = $this->_postArray['brq_transaction_method'];
+
+                $transactions = $transactionManager->addDebitTransaction($transactionKey, $amount, $method);
+
+                $payment->setAdditionalInformation('transactions', $transactions);
+                $payment->save();
+            }
+
             //if the order cant be updated, try to add a notification to the status history instead
             $response = $this->_parsePostResponse($this->_postArray['brq_statuscode']);
             $this->_addNote($response['message'], $this->_method);
