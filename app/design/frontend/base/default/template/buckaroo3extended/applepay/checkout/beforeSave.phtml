@@ -112,7 +112,7 @@
                                 BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
                                     if(applePaySupported) {
                                         var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
-                                        payment.showPayButton('black');
+                                        payment.showPayButton('black', 'buy');
                                         jQuery('.buckaroo-apple-pay-shadow, #buckaroo-apple-pay-popup').fadeIn('fast');
                                     } else {
                                         alert('ApplePay not available!')
