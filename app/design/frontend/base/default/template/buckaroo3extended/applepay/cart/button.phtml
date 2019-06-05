@@ -100,7 +100,7 @@ $isConfigurable = $this->isConfigurable();
                             <?php if (!$isConfigurable): ?>
                             jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper').show();
                             <?php endif; ?>
-                            payment.showPayButton('black')
+                            payment.showPayButton('black', 'buy')
                         } else {
                             jQuery('#apple-pay-disabled').hide();
                         }
