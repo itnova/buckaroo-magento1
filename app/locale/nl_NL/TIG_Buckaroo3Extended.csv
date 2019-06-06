@@ -421,3 +421,8 @@ TIG_Buckaroo3Extended::Fee label, Betaaltoeslag label
 "Refund amount not enough. Try refund offline and via Buckaroo plaza.","Refundbedrag niet genoeg. Probeer een offline refund en via Buckaroo Plaza."
 "Cannot calculate how to do this refund. Try refund offline and via Buckaroo plaza.","Kan niet berekenen hoe deze refund moet worden gedaan. Probeer een offline refund en via Buckaroo Plaza."
 "The Credit Memo was not created: a refund could not be made for some partial transactions. Check in the <a href='%s' target='_blank'>Buckaroo Plaza</a> which refunds were successful. If necessary, create an offline Credit Memo for the amount that has been refunded to match your administration.","De Credit Memo is niet aangemaakt: voor sommige deeltransacties kon geen refund worden gedaan. Controleer in de <a href='%s' target='_blank'>Buckaroo Plaza</a> welke refunds geslaagd zijn. Maak eventueel voor het bedrag dat wel gerefund is, een offline Credit Memo aan om uw administratie overeen te laten komen."
+"TIG_Buckaroo3Extended::subTotal","Subtotaal"
+"TIG_Buckaroo3Extended::Delivery costs","Verzendkosten"
+"TIG_Buckaroo3Extended::Payment fee","Betaaltoeslag"
+"TIG_Buckaroo3Extended::Discount","Korting"
+
