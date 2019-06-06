@@ -72,7 +72,10 @@ class TIG_Buckaroo3Extended_Model_Response_Abstract extends TIG_Buckaroo3Extende
         $this->setResponse($data['response']);
         $this->setResponseXML($data['XML']);
     }
-
+    
+    /**
+     * @throws Exception
+     */
     public function processResponse()
     {
         if ($this->_response === false) {
@@ -137,34 +140,43 @@ class TIG_Buckaroo3Extended_Model_Response_Abstract extends TIG_Buckaroo3Extende
                 'responseobject' => $this->_response,
             )
         );
-
-        return $this->_requiredAction($parsedResponse);
+    
+        try {
+            return $this->_requiredAction($parsedResponse);
+        } catch (Exception $e) {
+            throw new Exception($e->getMessage());
+        }
     }
-
+    
     /**
-     * Get required action by response status.
      * @param $response
+     *
+     * @throws Exception
      */
     protected function _requiredAction($response)
     {
-        switch ($response['status']) {
-            case self::BUCKAROO_SUCCESS:           
-                return $this->_success();
-            case self::BUCKAROO_FAILED:            
-                return $this->_failed($response['message']);
-            case self::BUCKAROO_ERROR:             
-                return $this->_error($response['message']);
-            case self::BUCKAROO_NEUTRAL:           
-                return $this->_neutral();
-            case self::BUCKAROO_PENDING_PAYMENT:   
-                return $this->_pendingPayment();
-            case self::BUCKAROO_INCORRECT_PAYMENT: 
-                return $this->_incorrectPayment($response['message']);
-            case self::BUCKAROO_REJECTED:          
-                return $this->_rejected($response['message']);
-            default:                               
-                return $this->_neutral();
-        }
+        try {
+            switch ($response['status']) {
+                case self::BUCKAROO_SUCCESS:
+                    return $this->_success();
+                case self::BUCKAROO_FAILED:
+                    return $this->_failed($response['message']);
+                case self::BUCKAROO_ERROR:
+                    return $this->_error($response['message']);
+                case self::BUCKAROO_NEUTRAL:
+                    return $this->_neutral();
+                case self::BUCKAROO_PENDING_PAYMENT:
+                    return $this->_pendingPayment();
+                case self::BUCKAROO_INCORRECT_PAYMENT:
+                    return $this->_incorrectPayment($response['message']);
+                case self::BUCKAROO_REJECTED:
+                    return $this->_rejected($response['message']);
+                default:
+                    return $this->_neutral();
+                }
+            } catch (Exception $e) {
+                throw new Exception($e->getMessage());
+            }
     }
 
     protected function _addSubCodeComment($parsedResponse)
@@ -263,7 +275,12 @@ class TIG_Buckaroo3Extended_Model_Response_Abstract extends TIG_Buckaroo3Extende
 
         return;
     }
-
+    
+    /**
+     * @param string $message
+     *
+     * @throws Exception
+     */
     protected function _failed($message = '')
     {
         $this->_debugEmail .= 'The transaction was unsuccessful. \n';
@@ -301,13 +318,23 @@ class TIG_Buckaroo3Extended_Model_Response_Abstract extends TIG_Buckaroo3Extende
         $this->_debugEmail .= 'Redirecting user to...' . $returnUrl . "\n";
 
         $this->sendDebugEmail();
+        
+        $payment = $this->_order->getPayment();
+        if($payment->getMethod() == 'buckaroo3extended_applepay') {
+            throw new Exception('The payment request has been denied by Buckaroo.');
+        }
 
         Mage::app()->getResponse()->clearHeaders();
         Mage::app()->getResponse()->setRedirect($returnUrl)->sendResponse();
 
         return;
     }
-
+    
+    /**
+     * @param string $message
+     *
+     * @throws Exception
+     */
     protected function _error($message = '')
     {
         $this->_debugEmail .= "The transaction generated an error. \n";
@@ -337,13 +364,23 @@ class TIG_Buckaroo3Extended_Model_Response_Abstract extends TIG_Buckaroo3Extende
         $this->_debugEmail .= 'Redirecting user to...' . $returnUrl . "\n";
 
         $this->sendDebugEmail();
-
+    
+        $payment = $this->_order->getPayment();
+        if($payment->getMethod() == 'buckaroo3extended_applepay') {
+            throw new Exception('A technical error has occurred.');
+        }
+        
         Mage::app()->getResponse()->clearHeaders();
         Mage::app()->getResponse()->setRedirect($returnUrl)->sendResponse();
 
         return;
     }
-
+    
+    /**
+     * @param string $message
+     *
+     * @throws Mage_Core_Exception
+     */
     protected function _rejected($message = '')
     {
 
@@ -374,6 +411,11 @@ class TIG_Buckaroo3Extended_Model_Response_Abstract extends TIG_Buckaroo3Extende
         $this->_debugEmail .= 'Redirecting user to...' . $returnUrl . "\n";
 
         $this->sendDebugEmail();
+    
+        $payment = $this->_order->getPayment();
+        if($payment->getMethod() == 'buckaroo3extended_applepay') {
+            throw new Exception('The transaction generated an error.');
+        }
 
         Mage::app()->getResponse()->clearHeaders();
         Mage::app()->getResponse()->setRedirect($returnUrl)->sendResponse();
