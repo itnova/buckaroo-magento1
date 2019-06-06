@@ -9,7 +9,7 @@ $isConfigurable = $this->isConfigurable();
 <div id="buckaroo-apple-pay-button">
     <div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none" style="display: none;"></div>
     <div id="apple-pay-button" class="apple-pay input-block-level d-none" style="display: none;"></div>
-    <div id="apple-pay-wrapper" lang="nl" class="apple-pay apple-pay-button apple-pay-button-black d-none apple-pay-button-type-buy" style="display: none;"></div>
+    <div id="apple-pay-wrapper" lang="<?php echo explode('_', Mage::app()->getStore()->getLocaleCode())[0]; ?>" class="apple-pay apple-pay-button apple-pay-button-black d-none apple-pay-button-type-buy" style="display: none;"></div>
     <div id="apple-pay-disabled" <?php echo $isConfigurable ? '' : 'style="display: none;"';?> class="apple-pay apple-pay-button apple-pay-button-black apple-pay-button-type-buy d-none"></div>
 </div>
 
