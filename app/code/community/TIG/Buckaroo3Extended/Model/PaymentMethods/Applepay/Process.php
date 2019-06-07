@@ -139,5 +139,6 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_Process extends TIG_Bu
         $oldQuoteId = Mage::getModel('checkout/session')->getOldQuoteId();
         $session->setQuoteId($oldQuoteId);
         $session->setIsActive(1);
+        Mage::getModel('checkout/session')->setOldQuoteId(null);
     }
 }

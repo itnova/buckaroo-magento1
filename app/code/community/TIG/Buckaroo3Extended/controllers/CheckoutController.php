@@ -89,6 +89,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      * Creates a quote within product view for further processing.
      * Used by Apple Pay.
      *
+     * This method is loaded on pop-up load and shipping contact change, that's
+     * why we add an apple_pay_init attribute to the session.
+     *
      * @throws \Mage_Core_Exception
      * @throws \Mage_Core_Model_Store_Exception
      */
@@ -100,21 +103,31 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         if (!$postData['product']) {
             return;
         }
-        
+    
         $product = $postData['product'];
+        $applePayInit = Mage::getSingleton('checkout/session')->getApplePayInit();
     
-        /** Get the old QuoteId and set it */
-        $oldQuoteId = Mage::getModel('checkout/session')->getQuote()->getId();
-        Mage::getSingleton('checkout/session')->setOldQuoteId($oldQuoteId);
+        if ($applePayInit) {
+            /**
+             * Set apple_pay_init to null, so the cart will not be restored on
+             * shipping contact change
+             */
+            Mage::getSingleton('checkout/session')->setApplePayInit(null);
     
-        /** Build new quote */
-        $newQuote = Mage::getModel('sales/quote');
-        $newQuote->setData('is_active', 1);
-        $newQuote->save();
-        $newQuoteId = $newQuote->getId();
+            /** Get the old QuoteId and set it */
+            $oldQuoteId = Mage::getModel('checkout/session')->getQuote()->getId();
+            Mage::getSingleton('checkout/session')->setOldQuoteId($oldQuoteId);
     
-        Mage::getSingleton('checkout/session')->setQuoteId($newQuoteId);
-        
+            /** Build new quote */
+            $newQuote = Mage::getModel('sales/quote');
+            $newQuote->setData('is_active', 1);
+            $newQuote->save();
+            $newQuoteId = $newQuote->getId();
+    
+            Mage::getSingleton('checkout/session')->setQuoteId($newQuoteId);
+        }
+    
+    
         /** @var Mage_Checkout_Model_Cart $cart */
         $cart = Mage::getModel('checkout/cart');
         $cart->truncate();
