@@ -12,7 +12,7 @@
         <div class="checkout-apple-pay-button-container">
             <div id="set-up-apple-pay-button" class="apple-pay apple-pay-set-up-button apple-pay-set-up-button-black input-block-level d-none"></div>
             <div id="apple-pay-button" class="apple-pay input-block-level d-none"></div>
-            <div id="apple-pay-wrapper" lang="en" class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
+            <div id="apple-pay-wrapper" lang="<?php echo explode('_', Mage::app()->getStore()->getLocaleCode())[0]; ?>" class="apple-pay apple-pay-button apple-pay-button-black d-none"></div>
         </div>
 
         <a href="#" class="close-apple-pay">&times;</a>

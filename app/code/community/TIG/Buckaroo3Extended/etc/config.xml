@@ -2,7 +2,7 @@
 <config>
     <modules>
         <TIG_Buckaroo3Extended>
-            <version>4.20.2</version>
+            <version>5.0.0</version>
         </TIG_Buckaroo3Extended>
     </modules>
     <tig>
@@ -305,6 +305,11 @@
                         <class>buckaroo3extended/paymentMethods_afterpay2_observer</class>
                         <method>buckaroo3extended_refund_request_setmethod</method>
                     </buckaroo3extended_paymentmethod_observer_afterpay2>
+                    <buckaroo3extended_paymentmethod_observer_afterpay20>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_afterpay20_observer</class>
+                        <method>buckaroo3extended_refund_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_afterpay20>
                     <buckaroo3extended_paymentmethod_observer_ideal>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_ideal_observer</class>
@@ -430,6 +435,16 @@
                         <class>buckaroo3extended/paymentMethods_dankort_observer</class>
                         <method>buckaroo3extended_request_setmethod</method>
                     </buckaroo3extended_paymentmethod_observer_dankort>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -469,6 +484,11 @@
                         <class>buckaroo3extended/paymentMethods_afterpay2_observer</class>
                         <method>buckaroo3extended_refund_request_addservices</method>
                     </buckaroo3extended_paymentmethod_observer_afterpay2>
+                    <buckaroo3extended_paymentmethod_observer_afterpay20>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_afterpay20_observer</class>
+                        <method>buckaroo3extended_refund_request_addservices</method>
+                    </buckaroo3extended_paymentmethod_observer_afterpay20>
                     <buckaroo3extended_paymentmethod_observer_amex>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_amex_observer</class>
@@ -584,6 +604,16 @@
                         <class>buckaroo3extended/paymentMethods_dankort_observer</class>
                         <method>buckaroo3extended_refund_request_addservices</method>
                     </buckaroo3extended_paymentmethod_observer_dankort>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_refund_request_addservices</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_refund_request_addservices</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -603,6 +633,11 @@
                         <class>buckaroo3extended/paymentMethods_afterpay2_observer</class>
                         <method>buckaroo3extended_refund_request_addcustomvars</method>
                     </buckaroo3extended_paymentmethod_observer_afterpay2>
+                    <buckaroo3extended_paymentmethod_observer_afterpay20>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_afterpay20_observer</class>
+                        <method>buckaroo3extended_refund_request_addcustomvars</method>
+                    </buckaroo3extended_paymentmethod_observer_afterpay20>
                     <buckaroo3extended_paymentmethod_observer_ideal>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_ideal_observer</class>
@@ -738,6 +773,16 @@
                         <class>buckaroo3extended/paymentMethods_dankort_observer</class>
                         <method>buckaroo3extended_refund_request_addcustomvars</method>
                     </buckaroo3extended_paymentmethod_observer_dankort>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_refund_request_addcustomvars</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_refund_request_addcustomvars</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -790,6 +835,11 @@
                         <class>buckaroo3extended/paymentMethods_afterpay2_observer</class>
                         <method>buckaroo3extended_request_addservices</method>
                     </buckaroo3extended_paymentmethod_observer_afterpay2>
+                    <buckaroo3extended_paymentmethod_observer_afterpay20>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_afterpay20_observer</class>
+                        <method>buckaroo3extended_request_addservices</method>
+                    </buckaroo3extended_paymentmethod_observer_afterpay20>
                     <buckaroo3extended_paymentmethod_observer_directdebit>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_directdebit_observer</class>
@@ -955,6 +1005,16 @@
                         <class>buckaroo3extended/paymentMethods_dankort_observer</class>
                         <method>buckaroo3extended_request_addservices</method>
                     </buckaroo3extended_paymentmethod_observer_dankort>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_request_addservices</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_request_addservices</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -1054,6 +1114,11 @@
                         <class>buckaroo3extended/paymentMethods_afterpay2_observer</class>
                         <method>buckaroo3extended_request_addcustomvars</method>
                     </buckaroo3extended_paymentmethod_observer_afterpay2>
+                    <buckaroo3extended_paymentmethod_observer_afterpay20>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_afterpay20_observer</class>
+                        <method>buckaroo3extended_request_addcustomvars</method>
+                    </buckaroo3extended_paymentmethod_observer_afterpay20>
                     <buckaroo3extended_paymentmethod_observer_payperemail>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_payperemail_observer</class>
@@ -1139,6 +1204,16 @@
                         <class>buckaroo3extended/paymentMethods_dankort_observer</class>
                         <method>buckaroo3extended_request_addcustomvars</method>
                     </buckaroo3extended_paymentmethod_observer_dankort>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_request_addcustomvars</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_request_addcustomvars</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -1238,6 +1313,11 @@
                         <class>buckaroo3extended/paymentMethods_afterpay2_observer</class>
                         <method>buckaroo3extended_request_setmethod</method>
                     </buckaroo3extended_paymentmethod_observer_afterpay2>
+                    <buckaroo3extended_paymentmethod_observer_afterpay20>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_afterpay20_observer</class>
+                        <method>buckaroo3extended_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_afterpay20>
                     <buckaroo3extended_paymentmethod_observer_payperemail>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_payperemail_observer</class>
@@ -1323,6 +1403,16 @@
                         <class>buckaroo3extended/paymentMethods_dankort_observer</class>
                         <method>buckaroo3extended_request_setmethod</method>
                     </buckaroo3extended_paymentmethod_observer_dankort>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_request_setmethod</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -1423,6 +1513,16 @@
                     </buckaroo3extended_paymentmethod_observer_dankort>
                 </observers>
                 <observers>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_return_custom_processing</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_return_custom_processing</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -1474,6 +1574,16 @@
                     </buckaroo3extended_paymentmethod_observer_dankort>
                 </observers>
                 <observers>
+                    <buckaroo3extended_paymentmethod_observer_nexi>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_nexi_observer</class>
+                        <method>buckaroo3extended_push_custom_processing_after</method>
+                    </buckaroo3extended_paymentmethod_observer_nexi>
+                    <buckaroo3extended_paymentmethod_observer_creditcard>
+                        <type>Singleton</type>
+                        <class>buckaroo3extended/paymentMethods_creditcard_observer</class>
+                        <method>buckaroo3extended_push_custom_processing_after</method>
+                    </buckaroo3extended_paymentmethod_observer_creditcard>
                     <buckaroo3extended_paymentmethod_observer_applepay>
                         <type>Singleton</type>
                         <class>buckaroo3extended/paymentMethods_applepay_observer</class>
@@ -1608,17 +1718,24 @@
             <buckaroo3extended_afterpay>
                 <active>1</active>
                 <model>buckaroo3extended/paymentMethods_afterpay_paymentMethod</model>
-                <title>Afterpay</title>
+                <title>Afterpay (oud)</title>
                 <sort_order>25</sort_order>
                 <group>buckaroo3extended</group>
             </buckaroo3extended_afterpay>
             <buckaroo3extended_afterpay2>
                 <active>1</active>
                 <model>buckaroo3extended/paymentMethods_afterpay2_paymentMethod</model>
-                <title>Afterpay 2</title>
+                <title>Afterpay 2 (oud)</title>
                 <sort_order>25</sort_order>
                 <group>buckaroo3extended</group>
             </buckaroo3extended_afterpay2>
+            <buckaroo3extended_afterpay20>
+                <active>1</active>
+                <model>buckaroo3extended/paymentMethods_afterpay20_paymentMethod</model>
+                <title>Afterpay</title>
+                <sort_order>25</sort_order>
+                <group>buckaroo3extended</group>
+            </buckaroo3extended_afterpay20>
             <buckaroo3extended_mastercard>
                 <active>1</active>
                 <model>buckaroo3extended/paymentMethods_mastercard_paymentMethod</model>
@@ -1829,6 +1946,20 @@
                 <sort_order>270</sort_order>
                 <group>buckaroo3extended</group>
             </buckaroo3extended_dankort>
+            <buckaroo3extended_nexi>
+                <active>1</active>
+                <model>buckaroo3extended/paymentMethods_nexi_paymentMethod</model>
+                <title>Nexi</title>
+                <sort_order>280</sort_order>
+                <group>buckaroo3extended</group>
+            </buckaroo3extended_nexi>
+            <buckaroo3extended_creditcard>
+                <active>1</active>
+                <model>buckaroo3extended/paymentMethods_creditcard_paymentMethod</model>
+                <title>Creditcard</title>
+                <sort_order>290</sort_order>
+                <group>buckaroo3extended</group>
+            </buckaroo3extended_creditcard>
             <buckaroo3extended_applepay>
                 <active>1</active>
                 <model>buckaroo3extended/paymentMethods_applepay_paymentMethod</model>
@@ -2242,7 +2373,7 @@
             <buckaroo3extended_afterpay>
                 <active>0</active>
                 <mode>0</mode>
-                <title>Afterpay</title>
+                <title>Afterpay (oud)</title>
                 <allowspecific>0</allowspecific>
                 <specificcountry></specificcountry>
                 <order_status_success></order_status_success>
@@ -2258,7 +2389,7 @@
             <buckaroo3extended_afterpay2>
                 <active>0</active>
                 <mode>0</mode>
-                <title>Afterpay 2</title>
+                <title>Afterpay 2 (oud)</title>
                 <allowspecific>0</allowspecific>
                 <specificcountry></specificcountry>
                 <order_status_success></order_status_success>
@@ -2270,6 +2401,21 @@
                 <order_email>1</order_email>
                 <paymethod>afterpayacceptgiro</paymethod>
             </buckaroo3extended_afterpay2>
+
+            <buckaroo3extended_afterpay20>
+                <active>0</active>
+                <mode>0</mode>
+                <title>Afterpay</title>
+                <allowspecific>0</allowspecific>
+                <specificcountry></specificcountry>
+                <order_status_success></order_status_success>
+                <order_status_failed></order_status_failed>
+                <sort_order>25</sort_order>
+                <limit_by_ip>0</limit_by_ip>
+                <allowed_currencies>EUR</allowed_currencies>
+                <payment_fee_label>Fee</payment_fee_label>
+                <order_email>1</order_email>
+            </buckaroo3extended_afterpay20>
 
             <buckaroo3extended_payperemail>
                 <active>0</active>
@@ -2541,6 +2687,36 @@
                 <limit_by_ip>0</limit_by_ip>
             </buckaroo3extended_dankort>
 
+            <buckaroo3extended_nexi>
+                <active>0</active>
+                <mode>0</mode>
+                <title>Nexi</title>
+                <sort_order>290</sort_order>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <order_status_success></order_status_success>
+                <order_status_failed></order_status_failed>
+                <allowspecific>0</allowspecific>
+                <specificcountry></specificcountry>
+                <allowed_currencies>EUR</allowed_currencies>
+                <limit_by_ip>0</limit_by_ip>
+            </buckaroo3extended_nexi>
+
+            <buckaroo3extended_creditcard>
+                <active>0</active>
+                <mode>0</mode>
+                <title>Creditcard</title>
+                <sort_order>300</sort_order>
+                <order_email>1</order_email>
+                <payment_fee_label>Fee</payment_fee_label>
+                <order_status_success></order_status_success>
+                <order_status_failed></order_status_failed>
+                <allowspecific>0</allowspecific>
+                <specificcountry></specificcountry>
+                <allowed_currencies>EUR</allowed_currencies>
+                <limit_by_ip>0</limit_by_ip>
+            </buckaroo3extended_creditcard>
+
             <buckaroo3extended_applepay>
                 <active>0</active>
                 <mode>0</mode>
@@ -2554,7 +2730,7 @@
                 <specificcountry></specificcountry>
                 <allowed_currencies>EUR</allowed_currencies>
                 <limit_by_ip>0</limit_by_ip>
-            </buckaroo3extended_applepay>Ø
+            </buckaroo3extended_applepay>
         </buckaroo>
         <tax>
             <calculation>
