@@ -102,6 +102,18 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         }
         
         $product = $postData['product'];
+    
+        /** Get the old QuoteId and set it */
+        $oldQuoteId = Mage::getModel('checkout/session')->getQuote()->getId();
+        Mage::getSingleton('checkout/session')->setOldQuoteId($oldQuoteId);
+    
+        /** Build new quote */
+        $newQuote = Mage::getModel('sales/quote');
+        $newQuote->setData('is_active', 1);
+        $newQuote->save();
+        $newQuoteId = $newQuote->getId();
+    
+        Mage::getSingleton('checkout/session')->setQuoteId($newQuoteId);
         
         /** @var Mage_Checkout_Model_Cart $cart */
         $cart = Mage::getModel('checkout/cart');
@@ -446,6 +458,21 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json');;
         $this->getResponse()->setBody($jsonResponse);
+    }
+    
+    public function restoreCartAction()
+    {
+        /** Check if we are on the product page */
+        $type = $this->getRequest()->getParam('page');
+        
+        if ($type !== 'product')
+        {
+            return;
+        }
+        
+        /** @var TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_Process $process */
+        $process = Mage::getModel(' buckaroo3extended/paymentMethods_applepay_process');
+        $process->restoreCart();
     }
     
     /**
