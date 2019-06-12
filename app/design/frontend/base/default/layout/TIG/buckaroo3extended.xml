@@ -146,7 +146,7 @@
             <reference name="checkout.cart.methods">
                 <block type="buckaroo3extended/paymentMethods_applepay_cart_button" name="checkout.cart.methods.applepay" as="checkout.applepay.cart.button">
                     <action method="setTemplate" ifconfig="buckaroo/buckaroo3extended_applepay/active">
-                        <template>buckaroo3extended/applepay/cart/button.phtml</template>
+                        <template helper="buckaroo3extended/data/isApplePayInCartEnabled"/>
                     </action>
                 </block>
             </reference>
@@ -169,7 +169,7 @@
         <reference name="product.info.addtocart">
             <block type="buckaroo3extended/paymentMethods_applepay_product_button" name="product.info.applepay" as="applepay.product">
                 <action method="setTemplate" ifconfig="buckaroo/buckaroo3extended_applepay/active">
-                    <template>buckaroo3extended/applepay/cart/button.phtml</template>
+                    <template helper="buckaroo3extended/data/isApplePayInProductEnabled"/>
                 </action>
             </block>
         </reference>
