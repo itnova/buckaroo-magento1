@@ -115,6 +115,11 @@
                                 if (this.applePayPayment.length === 0) {
                                     self.createApplePayPayment(results.merchantIdentifier);
                                 }
+                                
+                                /**
+                                 * The options within the payment object need to be updated on every run.
+                                 */
+                                this.applePayPayment.options = this.applePayOptions;
     
                                 jQuery('.buckaroo-apple-pay-shadow, #buckaroo-apple-pay-popup').fadeIn('fast');
                             },
