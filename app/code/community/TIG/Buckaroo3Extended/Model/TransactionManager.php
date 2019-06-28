@@ -56,9 +56,8 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
      */
     public function _construct($array = null)
     {
-        $this->_init('buckaroo3extended/transactionManager');
 
-        if (isset($array) && is_array($array)) {
+        if (isset($array) && is_array($array) && count($array) > 0) {
             $this->setTransactionArray($array);
         }
     }
@@ -68,7 +67,9 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
      */
     public function setTransactionArray($array)
     {
-        $this->transactionArray = $array;
+        if (isset($array) && is_array($array) && count($array) > 0) {
+            $this->transactionArray = $array;
+        }
     }
 
     /**
@@ -229,7 +230,8 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
 
             //already fully refundend
             if (isset($transactionValue['refunded']) &&
-                $transactionValue['refunded'] >= $transactionValue['amount']) {
+                round($transactionValue['refunded'], 4) >= round($transactionValue['amount'], 4)
+               ) {
                 continue;
             }
 
