@@ -56,6 +56,7 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
      */
     public function _construct($array = null)
     {
+        $this->_init('buckaroo3extended/transactionManager');
 
         if (isset($array) && is_array($array) && count($array) > 0) {
             $this->setTransactionArray($array);
