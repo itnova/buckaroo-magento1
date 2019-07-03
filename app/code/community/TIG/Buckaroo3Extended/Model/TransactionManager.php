@@ -56,6 +56,7 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
      */
     public function _construct($array = null)
     {
+        $this->_init('buckaroo3extended/transactionManager');
 
         if (isset($array) && is_array($array) && count($array) > 0) {
             $this->setTransactionArray($array);
@@ -85,7 +86,9 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
      */
     public function getPossibleRefundAmount()
     {
-        if (isset($this->transactionArray['total_debit'])) {
+        if (isset($this->transactionArray['total_debit']) &&
+            $this->transactionArray['total_debit'] > 0
+        ) {
             return $this->transactionArray['total_debit'] - $this->transactionArray['total_credit'];
         }
 
@@ -102,7 +105,7 @@ class TIG_Buckaroo3Extended_Model_TransactionManager extends Mage_Core_Model_Abs
         $possibleRefundAmount = $this->getPossibleRefundAmount();
 
         if ($possibleRefundAmount == false ||
-            $amount > $possibleRefundAmount
+            round($amount,4) > round($possibleRefundAmount, 4)
         ) {
             return false;
         }
