@@ -43,6 +43,7 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Dankort_PaymentMethod extends T
         'EUR',
         'GBP',
         'HRK',
+        'HUF',
         'ISK',
         'JPY',
         'LTL',
