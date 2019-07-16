@@ -258,7 +258,7 @@ class TIG_Buckaroo3Extended_Model_PaymentFee_Quote_Address_Total_Fee
                 $fee = 0;
             }
         } else {
-            $fee = (float) $fee;
+            $fee = $this->convertToFloat($fee);
         }
 
         if ($fee <= 0) {
@@ -298,6 +298,14 @@ class TIG_Buckaroo3Extended_Model_PaymentFee_Quote_Address_Total_Fee
         $fee -= $feeTax;
 
         return $fee;
+    }
+    
+    protected function convertToFloat($fee)
+    {
+        $fee = str_replace(",",".", $fee);
+        $fee = preg_replace('/\.(?=.*\.)/', '', $fee);
+        
+        return floatval($fee);
     }
 
     protected function getCalculationAmount($storeId, $address)
