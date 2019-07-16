@@ -1,6 +1,8 @@
 <?php
 /**
  * Empty div's to be used for the ApplePay pop-up.
+ *
+ * @var TIG_Buckaroo3Extended_Block_PaymentMethods_Applepay_Product_Button $this
  */
 
 $isConfigurable = $this->isConfigurable();
@@ -86,7 +88,7 @@ $isConfigurable = $this->isConfigurable();
                         optionsArray.storeName, optionsArray.countryCode, optionsArray.currencyCode, optionsArray.cultureCode,
                         optionsArray.merchantIdentifier, optionsArray.lineItems, optionsArray.totalLineItems, optionsArray.shippingType,
                         optionsArray.shippingMethods, this.captureFunds, this.updateShippingMethod, this.updateShippingContact,
-                        requiredBillingFields, requiredShippingFields
+                        requiredBillingFields, requiredShippingFields, this.restoreCart,
                     );
                     
                     /**
@@ -96,9 +98,16 @@ $isConfigurable = $this->isConfigurable();
 
                     BuckarooSdk.ApplePay.checkApplePaySupport(optionsArray.merchantIdentifier).then(function (applePaySupported) {
                         if (applePaySupported) {
+                            <?php
+                                /**
+                                 * Set apple_pay_init to true, so new quote is created and restored on pop-up load, and not on
+                                 * change of shipping contact.
+                                 */
+                                Mage::getSingleton('checkout/session')->setApplePayInit(true);
+                            ?>
                             var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
                             <?php if (!$isConfigurable): ?>
-                            jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper').show();
+                                jQuery('.method-checkout-cart-methods-applepay, #set-up-apple-pay-button, #apple-pay-button, #apple-pay-wrapper').show();
                             <?php endif; ?>
                             payment.showPayButton('black', 'buy')
                         } else {
@@ -155,7 +164,7 @@ $isConfigurable = $this->isConfigurable();
                  *
                  * Method = GET, since we need to send a serialized form if the product is configurable.
                  */
-                ApplePay.prototype.updateShippingContact = function(context) {
+                ApplePay.prototype.updateShippingContact = function(contact) {
                     var jQver = '';
     
                     if (typeof jQuery !== undefined) {
@@ -163,7 +172,7 @@ $isConfigurable = $this->isConfigurable();
                     }
     
                     if (jQver[0] === 3) {
-                        return this.updateShippingContactjQ3(context);
+                        return this.updateShippingContactjQ3(contact);
                     }
                     
                     var options = jQuery('#product_addtocart_form').serializeArray()
@@ -174,7 +183,7 @@ $isConfigurable = $this->isConfigurable();
                             method: 'get',
                             context: this,
                             data: {
-                                wallet: context,
+                                wallet: contact,
                                 product: {
                                     id: '<?php echo $this->getProductId(); ?>',
                                     qty: jQuery('.add-to-cart #qty').val(),
@@ -214,7 +223,7 @@ $isConfigurable = $this->isConfigurable();
                  *
                  * Duplicate method, compatible with jQuery 3.
                  */
-                ApplePay.prototype.updateShippingContactjQ3 = function(context) {
+                ApplePay.prototype.updateShippingContactjQ3 = function(contact) {
                     var options = jQuery('#product_addtocart_form').serializeArray()
         
                     var update = jQuery.ajax(
@@ -223,7 +232,7 @@ $isConfigurable = $this->isConfigurable();
                             method: 'get',
                             context: this,
                             data: {
-                                wallet: context,
+                                wallet: contact,
                                 product: {
                                     id: '<?php echo $this->getProductId(); ?>',
                                     qty: jQuery('.add-to-cart #qty').val(),
@@ -300,7 +309,6 @@ $isConfigurable = $this->isConfigurable();
                             {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'}
                         ]
                     }
-
                     return [
                         {label: '<?php echo $this->getSubtotalText(); ?>', amount: parseFloat(data['subTotal']).toFixed(2), type: 'final'},
                         {label: '<?php echo $this->__('Delivery costs'); ?>', amount: price.toFixed(2), type: 'final'},
@@ -441,6 +449,21 @@ $isConfigurable = $this->isConfigurable();
                         }
                     );
                 }
+    
+                /**
+                 * Restore the old cart.
+                 */
+                ApplePay.prototype.restoreCart = function() {
+                    jQuery.ajax(
+                        {
+                            url: '/buckaroo3extended/checkout/restoreCart',
+                            method: 'post',
+                            data: {
+                                page: '<?php echo Mage::app()->getFrontController()->getRequest()->getControllerName();?>'
+                            }
+                        }
+                    )
+                }
                 
                 /**
                  * Callback function used for processing the payment and sending it to Buckaroo.
@@ -467,6 +490,7 @@ $isConfigurable = $this->isConfigurable();
                         });
                         
                         placeOrderRequest.fail(function() {
+                            ApplePay.prototype.restoreCart();
                             resolve(authorizationFailedResult);
                         });
                     })

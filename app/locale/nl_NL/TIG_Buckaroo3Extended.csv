@@ -425,4 +425,7 @@ TIG_Buckaroo3Extended::Fee label, Betaaltoeslag label
 "TIG_Buckaroo3Extended::Delivery costs","Verzendkosten"
 "TIG_Buckaroo3Extended::Payment fee","Betaaltoeslag"
 "TIG_Buckaroo3Extended::Discount","Korting"
-
+"Product Page","Product Pagina"
+"TIG_Buckaroo3Extended::Cart","Winkelwagen"
+"Enable or disable applepay buttons","Schakel de buttons aan of uit"
+"Select which buttons you want to be active.","Selecteer de buttons die u wilt tonen"

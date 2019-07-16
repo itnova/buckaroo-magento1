@@ -83,9 +83,12 @@
         (function(Magento) {
             var ApplePay = (function() {
                 function ApplePay() {
-                
-                }
 
+                }
+    
+                this.applePayPayment = [];
+                this.applePayOptions = [];
+                
                 /**
                  * Used to retrieve all data from the Quote and create ApplePay Payment Session.
                  */
@@ -98,30 +101,42 @@
                             method: 'post',
                             onSuccess: function(response) {
                                 var results = self.processResponse(response.responseJSON)
-                                var options = new BuckarooSdk.ApplePay.ApplePayOptions(
+                                this.applePayOptions = new BuckarooSdk.ApplePay.ApplePayOptions(
                                     results.storeName, results.countryCode, results.currencyCode, results.cultureCode,
                                     results.merchantIdentifier, results.lineItems, results.totalLineItems, results.shippingType,
                                     results.shippingMethods, self.captureFunds, [], [], [], []
                                 )
-    
+                                
                                 /**
                                  * Hooking into this event allows overriding the options with custom values.
                                  */
-                                jQuery(document).trigger('buckaroo3extended_applepay_options', [this, options]);
+                                jQuery(document).trigger('buckaroo3extended_applepay_options', [this, this.applePayOptions]);
                                 
-                                BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
-                                    if(applePaySupported) {
-                                        var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
-                                        payment.showPayButton('black', 'buy');
-                                        jQuery('.buckaroo-apple-pay-shadow, #buckaroo-apple-pay-popup').fadeIn('fast');
-                                    } else {
-                                        alert('ApplePay not available!')
-                                    }
-                                })
+                                if (this.applePayPayment.length === 0) {
+                                    self.createApplePayPayment(results.merchantIdentifier);
+                                }
+                                
+                                /**
+                                 * The options within the payment object need to be updated on every run.
+                                 */
+                                this.applePayPayment.options = this.applePayOptions;
+    
+                                jQuery('.buckaroo-apple-pay-shadow, #buckaroo-apple-pay-popup').fadeIn('fast');
                             },
                             onFailure: checkout.ajaxFailure.bind(checkout)
                         }
                     )
+                }
+                
+                ApplePay.prototype.createApplePayPayment = function(merchantId) {
+                    BuckarooSdk.ApplePay.checkApplePaySupport(merchantId).then(function(applePaySupported) {
+                        if(applePaySupported) {
+                            this.applePayPayment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', this.applePayOptions)
+                            this.applePayPayment.showPayButton('black', 'buy');
+                        } else {
+                            alert('ApplePay not available!')
+                        }
+                    })
                 }
 
                 /**
@@ -182,25 +197,6 @@
                     return {
                         label: response.store_name, amount: grandTotal, type: 'final'
                     }
-                }
-
-                /**
-                 * Processes the available information about the selected shipping method.
-                 *
-                 * @param response
-                 * @returns {{identifier, amount: string, label: *, detail: string}[]}
-                 */
-                ApplePay.prototype.createShippingMethodInformation = function(response) {
-                    var shippingInclTax = parseFloat(response.shipping_incl_tax).toFixed(2)
-
-                    return [
-                        {
-                            label: response.shipping_description,
-                            amount: shippingInclTax,
-                            identifier: response.shipping_method,
-                            detail: '<?php echo $this->__('Shipping Method selected during checkout.'); ?>'
-                        }
-                    ]
                 }
     
                 /**
