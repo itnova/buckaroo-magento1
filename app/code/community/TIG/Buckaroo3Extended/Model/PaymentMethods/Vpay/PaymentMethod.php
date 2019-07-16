@@ -13,6 +13,7 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Vpay_PaymentMethod extends TIG_
         'EUR',
         'GBP',
         'HRK',
+        'HUF',
         'LTL',
         'LVL',
         'MXN',
