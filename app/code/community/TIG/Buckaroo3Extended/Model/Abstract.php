@@ -389,7 +389,7 @@ class TIG_Buckaroo3Extended_Model_Abstract extends Mage_Payment_Model_Method_Abs
             $paymentMethod           = Mage::getModel(
                 'buckaroo3extended/paymentMethods_' . $methodName . '_paymentMethod'
             );
-            $currenciesAllowedConfig = Mage::getModel(
+            $currenciesAllowedConfig = Mage::getStoreConfig(
                 'buckaroo/buckaroo3extended_' . $methodName . '/allowed_currencies', $this->getStoreId()
             );
         }
