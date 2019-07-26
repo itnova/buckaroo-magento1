@@ -122,7 +122,7 @@ $isConfigurable = $this->isConfigurable();
                 ApplePay.prototype.updateShippingMethod = function(method) {
                     var update = jQuery.ajax(
                         {
-                            url: '/buckaroo3extended/checkout/updateShippingMethods',
+                            url: '<?php echo $this->getUrl('/buckaroo3extended/checkout/updateShippingMethods') ?>',
                             method: 'post',
                             context: this,
                             data: {
@@ -149,7 +149,7 @@ $isConfigurable = $this->isConfigurable();
                 ApplePay.prototype.setShippingMethod = function (method) {
                     jQuery.ajax(
                         {
-                            url: '/buckaroo3extended/checkout/setShippingMethod',
+                            url: '<?php echo $this->getUrl('/buckaroo3extended/checkout/setShippingMethod') ?>',
                             method: 'post',
                             context: this,
                             data: {
@@ -392,7 +392,7 @@ $isConfigurable = $this->isConfigurable();
                     
                     return jQuery.ajax(
                         {
-                            url: '/buckaroo3extended/checkout/saveOrder',
+                            url: '<?php echo $this->getUrl('/buckaroo3extended/checkout/saveOrder') ?>',
                             method: 'post',
                             context: this,
                             data: {
@@ -402,7 +402,7 @@ $isConfigurable = $this->isConfigurable();
                                 /** Set Timeout before redirecting to prevent Safari from crashing. */
                                 setTimeout(
                                     function() {
-                                        window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                        window.location.href = '<?php echo $this->getUrl('/buckaroo3extended/checkout/applepaySuccess') ?>';
                                     }, 1500
                                 )
                             },
@@ -424,7 +424,7 @@ $isConfigurable = $this->isConfigurable();
                 ApplePay.prototype.placeOrderjQ3 = function(payment) {
                     return jQuery.ajax(
                         {
-                            url: '/buckaroo3extended/checkout/saveOrder',
+                            url: '<?php echo $this->getUrl('/buckaroo3extended/checkout/saveOrder') ?>',
                             method: 'post',
                             context: this,
                             data: {
@@ -434,7 +434,7 @@ $isConfigurable = $this->isConfigurable();
                                 /** Set Timeout before redirecting to prevent Safari from crashing. */
                                 setTimeout(
                                     function() {
-                                        window.location.href = '/buckaroo3extended/checkout/applepaySuccess';
+                                        window.location.href = '<?php echo $this->getUrl('/buckaroo3extended/checkout/applepaySuccess') ?>';
                                     }, 1500
                                 )
                             },
@@ -456,7 +456,7 @@ $isConfigurable = $this->isConfigurable();
                 ApplePay.prototype.restoreCart = function() {
                     jQuery.ajax(
                         {
-                            url: '/buckaroo3extended/checkout/restoreCart',
+                            url: '<?php echo $this->getUrl('/buckaroo3extended/checkout/restoreCart') ?>',
                             method: 'post',
                             data: {
                                 page: '<?php echo Mage::app()->getFrontController()->getRequest()->getControllerName();?>'
