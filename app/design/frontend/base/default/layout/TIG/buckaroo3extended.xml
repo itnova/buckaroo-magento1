@@ -101,6 +101,18 @@
 		<reference name="before_body_end">
 			<block type="core/template" name="buckaroo_save_sata_js" template="buckaroo3extended/saveData.phtml"/>
 			<block type="core/template" name="buckaroo_onestepcheckout" template="buckaroo3extended/oneStepCheckout.phtml"/>
+            <block type="core/template" name="applepay_before_save">
+                <action method="setTemplate" ifconfig="buckaroo/buckaroo3extended_applepay/active">
+                    <template>buckaroo3extended/applepay/checkout/beforeSave.phtml</template>
+                </action>
+            </block>
+            <block type="core/text" name="buckaroo">
+                <action method="setText">
+                    <text>
+                        <![CDATA[<script type="text/javascript" src="https://checkout.buckaroo.nl/api/buckaroosdk/script/en-US"></script>]]>
+                    </text>
+                </action>
+            </block>
 		</reference>
 	</onestepcheckout_index_index>
 
