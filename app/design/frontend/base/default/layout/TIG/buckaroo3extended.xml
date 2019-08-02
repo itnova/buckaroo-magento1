@@ -103,7 +103,7 @@
 			<block type="core/template" name="buckaroo_onestepcheckout" template="buckaroo3extended/oneStepCheckout.phtml"/>
             <block type="core/template" name="applepay_before_save">
                 <action method="setTemplate" ifconfig="buckaroo/buckaroo3extended_applepay/active">
-                    <template>buckaroo3extended/applepay/checkout/beforeSave.phtml</template>
+                    <template>buckaroo3extended/applepay/checkout/beforeSaveOSC.phtml</template>
                 </action>
             </block>
             <block type="core/text" name="buckaroo">

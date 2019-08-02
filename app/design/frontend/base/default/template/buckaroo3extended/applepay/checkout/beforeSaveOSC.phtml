@@ -40,54 +40,37 @@
             });
             return this;
         };
+
+        jQuery('.onestepcheckout-place-order').preBind('click', function () {
+            if ((!("ApplePaySession" in window) || typeof ApplePaySession === 'undefined') && payment.currentMethod === 'buckaroo3extended_applepay') {
+                alert('<?php echo $this->__(
+                    'Apple Pay is not available on this device. Please select a different payment method.'
+                ); ?>');
+
+                arguments[0].stopImmediatePropagation();
+            }
+
+            if (payment.currentMethod === 'buckaroo3extended_applepay') {
+                arguments[0].stopImmediatePropagation();
+                /**
+                 * This function is triggered to handle the entire Apple Pay process.
+                 */
+                (function () {
+                    var paymentFormId = '#' + payment.form
+                    jQuery('<input>').attr({
+                        type  : 'hidden',
+                        id    : 'apple-pay-response',
+                        name  : 'apple-pay-response',
+                        value : null
+                    }).appendTo(paymentFormId)
+
+
+                    var handler = new Buckaroo.Magento.ApplePay()
+                    handler.initialize()
+                })()
+            }
+        });
     });
-
-    /**
-     * Display an alert if Apple Pay is selected as payment method, but it's not available on the device.
-     * Otherwise, continue with the checkout process.
-     */
-    Payment.prototype.save = Payment.prototype.save.wrap(function(save) {
-        if ((!("ApplePaySession" in window) || typeof ApplePaySession === 'undefined') && payment.currentMethod === 'buckaroo3extended_applepay') {
-            alert('<?php echo $this->__('Apple Pay is not available on this device. Please select a different payment method.'); ?>');
-
-            return;
-        }
-
-        save();
-    })
-
-    /**
-     * This wrapper overrides the save()-function of Magento Onepage Checkout's Review-class.
-     *
-     * This triggers the Apple Pay pop-up to be shown after the Place Order-button is
-     * clicked, so the payment can be processed before any other actions are
-     * triggered.
-     */
-    Review.prototype.save = Review.prototype.save.wrap(function(save) {
-        /**
-         * If Apple Pay is not the selected Payment Method, fallback to normal execution.
-         */
-        if(payment.currentMethod !== 'buckaroo3extended_applepay') {
-            save()
-
-            return
-        }
-
-        /**
-         * This function is triggered to handle the entire Apple Pay process.
-         */
-        (function() {
-            var paymentFormId = '#' + payment.form
-            jQuery('<input>').attr({
-                type: 'hidden',
-                id: 'apple-pay-response',
-                name: 'apple-pay-response',
-                value: null
-            }).appendTo(paymentFormId)
-            var handler = new Buckaroo.Magento.ApplePay()
-            handler.initialize()
-        })()
-    })
 
     var Buckaroo;
     (function(Buckaroo) {
