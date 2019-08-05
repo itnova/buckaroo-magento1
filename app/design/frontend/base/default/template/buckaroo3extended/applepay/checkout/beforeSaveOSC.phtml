@@ -41,17 +41,19 @@
             return this;
         };
 
-        jQuery('.onestepcheckout-place-order').preBind('click', function () {
-            if ((!("ApplePaySession" in window) || typeof ApplePaySession === 'undefined') && payment.currentMethod === 'buckaroo3extended_applepay') {
+        jQuery('.onestepcheckout-place-order').preBind('click', function (event) {
+            if (payment.currentMethod !== 'buckaroo3extended_applepay') {
+                return;
+            }
+
+            arguments[0].stopImmediatePropagation();
+            if (!("ApplePaySession" in window) || typeof ApplePaySession === 'undefined') {
                 alert('<?php echo $this->__(
                     'Apple Pay is not available on this device. Please select a different payment method.'
                 ); ?>');
-
-                arguments[0].stopImmediatePropagation();
             }
 
-            if (payment.currentMethod === 'buckaroo3extended_applepay') {
-                arguments[0].stopImmediatePropagation();
+            if (validateForm()) {
                 /**
                  * This function is triggered to handle the entire Apple Pay process.
                  */
@@ -71,6 +73,35 @@
             }
         });
     });
+
+    function validateForm()
+    {
+        // First validate the form
+        var form = new VarienForm('onestepcheckout-form');
+
+        // fix for ios safari not focusing on validated inputs
+        var userAgent = window.navigator.userAgent;
+        if (userAgent && (userAgent.match(/iPad/i) || userAgent.match(/iPhone/i))) {
+            form.validator.validate = form.validator.validate.wrap(function(originalMethod) {
+                var result = originalMethod();
+                if(!result){
+                    var failedElem = $$('#onestepcheckout-form .validation-failed').first();
+                    if(failedElem){
+                        var failedParent = failedElem.up('li');
+                        if(failedParent){
+                            failedParent.scrollIntoView();
+                        } else {
+                            failedElem.scrollIntoView();
+                        }
+                    }
+                }
+                return result;
+            });
+        }
+        //end fix for ios safari not focusing on validated inputs
+
+        return form.validator.validate();
+    }
 
     var Buckaroo;
     (function(Buckaroo) {
@@ -106,8 +137,12 @@
 
                                 BuckarooSdk.ApplePay.checkApplePaySupport(results.merchantIdentifier).then(function(applePaySupported) {
                                     if(applePaySupported) {
-                                        var payment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
-                                        payment.showPayButton('black', 'buy');
+                                        if (this.applePayPayment === undefined) {
+                                            this.applePayPayment = new BuckarooSdk.ApplePay.ApplePayPayment('#apple-pay-wrapper', options)
+                                            this.applePayPayment.showPayButton('black', 'buy');
+                                        } else {
+                                            this.applePayPayment.options = options;
+                                        }
                                         jQuery('.buckaroo-apple-pay-shadow, #buckaroo-apple-pay-popup').fadeIn('fast');
                                     } else {
                                         alert('ApplePay not available!')
