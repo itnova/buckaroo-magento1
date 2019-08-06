@@ -50,7 +50,7 @@ class TIG_Buckaroo3Extended_Test_Unit_Model_Sources_Dankort_AvailableCurrenciesT
     public function testToOptionArray()
     {
         $expectedOptions = array(
-            'ARS', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HRK', 'ISK',
+            'ARS', 'AUD', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK', 'EUR', 'GBP', 'HRK', 'HUF', 'ISK',
             'JPY', 'LTL', 'LVL', 'MXN', 'NOK', 'NZD', 'PLN', 'RUB', 'SEK', 'TRY', 'USD', 'ZAR'
         );
 

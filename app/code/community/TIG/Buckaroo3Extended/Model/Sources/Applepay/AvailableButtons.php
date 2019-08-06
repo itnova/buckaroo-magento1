@@ -29,37 +29,17 @@
  * @copyright   Copyright (c) Total Internet Group B.V. https://tig.nl/copyright
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  */
-class TIG_Buckaroo3Extended_Model_PaymentMethods_Nexi_PaymentMethod extends TIG_Buckaroo3Extended_Model_PaymentMethods_PaymentMethod
+class TIG_Buckaroo3Extended_Model_Sources_Applepay_AvailableButtons
 {
-    public $allowedCurrencies = array(
-        'ARS',
-        'AUD',
-        'BRL',
-        'CAD',
-        'CHF',
-        'CNY',
-        'CZK',
-        'DKK',
-        'EUR',
-        'GBP',
-        'HRK',
-        'HUF',
-        'ISK',
-        'JPY',
-        'LTL',
-        'LVL',
-        'MXN',
-        'NOK',
-        'NZD',
-        'PLN',
-        'RUB',
-        'SEK',
-        'TRY',
-        'USD',
-        'ZAR',
-    );
-
-    protected $_code = 'buckaroo3extended_nexi';
-
-    protected $_formBlockType = 'buckaroo3extended/paymentMethods_nexi_checkout_form';
+    public function toOptionArray()
+    {
+        $helper = Mage::helper('buckaroo3extended');
+        
+        return array(
+            array('value' => 'Product', 'label' => $helper->__('Product Page')),
+            array('value' => 'Cart', 'label' => $helper->__('Cart')),
+        );
+        
+        
+    }
 }

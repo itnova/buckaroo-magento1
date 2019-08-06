@@ -14,6 +14,7 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Amex_PaymentMethod
         'EUR',
         'GBP',
         'HRK',
+        'HUF',
         'LTL',
         'LVL',
         'MXN',

@@ -89,6 +89,9 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
      * Creates a quote within product view for further processing.
      * Used by Apple Pay.
      *
+     * This method is loaded on pop-up load and shipping contact change, that's
+     * why we add an apple_pay_init attribute to the session.
+     *
      * @throws \Mage_Core_Exception
      * @throws \Mage_Core_Model_Store_Exception
      */
@@ -100,9 +103,31 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         if (!$postData['product']) {
             return;
         }
-        
+    
         $product = $postData['product'];
-        
+        $applePayInit = Mage::getSingleton('checkout/session')->getApplePayInit();
+    
+        if ($applePayInit) {
+            /**
+             * Set apple_pay_init to null, so the cart will not be restored on
+             * shipping contact change
+             */
+            Mage::getSingleton('checkout/session')->setApplePayInit(null);
+    
+            /** Get the old QuoteId and set it */
+            $oldQuoteId = Mage::getModel('checkout/session')->getQuote()->getId();
+            Mage::getSingleton('checkout/session')->setOldQuoteId($oldQuoteId);
+    
+            /** Build new quote */
+            $newQuote = Mage::getModel('sales/quote');
+            $newQuote->setData('is_active', 1);
+            $newQuote->save();
+            $newQuoteId = $newQuote->getId();
+    
+            Mage::getSingleton('checkout/session')->setQuoteId($newQuoteId);
+        }
+    
+    
         /** @var Mage_Checkout_Model_Cart $cart */
         $cart = Mage::getModel('checkout/cart');
         $cart->truncate();
@@ -446,6 +471,21 @@ class TIG_Buckaroo3Extended_CheckoutController extends Mage_Core_Controller_Fron
         
         $this->getResponse()->clearHeaders()->setHeader('Content-type', 'application/json');;
         $this->getResponse()->setBody($jsonResponse);
+    }
+    
+    public function restoreCartAction()
+    {
+        /** Check if we are on the product page */
+        $type = $this->getRequest()->getParam('page');
+        
+        if ($type !== 'product')
+        {
+            return;
+        }
+        
+        /** @var TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_Process $process */
+        $process = Mage::getModel(' buckaroo3extended/paymentMethods_applepay_process');
+        $process->restoreCart();
     }
     
     /**

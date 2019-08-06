@@ -2,7 +2,7 @@
 <config>
     <modules>
         <TIG_Buckaroo3Extended>
-            <version>5.0.0</version>
+            <version>5.0.1</version>
         </TIG_Buckaroo3Extended>
     </modules>
     <tig>
@@ -11,6 +11,17 @@
         </buckaroo>
     </tig>
     <frontend>
+        <events>
+            <checkout_onepage_controller_success_action>
+                <observers>
+                    <buckaroo3extended_applepay_after_success>
+                        <type>model</type>
+                        <class>buckaroo3extended/observer_applepayAfterSuccess</class>
+                        <method>afterSuccessAction</method>
+                    </buckaroo3extended_applepay_after_success>
+                </observers>
+            </checkout_onepage_controller_success_action>
+        </events>
         <layout>
             <updates>
                 <TIG_Buckaroo3Extended>

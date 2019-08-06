@@ -128,4 +128,17 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Applepay_Process extends TIG_Bu
         
         return $address;
     }
+    
+    /**
+     * Restores the previous cart.
+     */
+    public function restoreCart()
+    {
+        /** @var Mage_Checkout_Model_Session $session */
+        $session = Mage::getModel('checkout/session');
+        $oldQuoteId = Mage::getModel('checkout/session')->getOldQuoteId();
+        $session->setQuoteId($oldQuoteId);
+        $session->setIsActive(1);
+        Mage::getModel('checkout/session')->setOldQuoteId(null);
+    }
 }

@@ -13,6 +13,7 @@ class TIG_Buckaroo3Extended_Model_PaymentMethods_Visaelectron_PaymentMethod exte
         'EUR',
         'GBP',
         'HRK',
+        'HUF',
         'ISK',
         'JPY',
         'LTL',
